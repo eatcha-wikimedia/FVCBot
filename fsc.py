@@ -536,7 +536,7 @@ class Candidate:
             "(%s.*?)([Ff]ile|[Ii]mage)" % candPrefix, r"\2", self.page.title()
         )
 
-        if not pywikibot.Page(COMMONS, self._fileName).exists():
+        if not pywikibot.Page(G_Site, self._fileName).exists():
             match = re.search(ImagesR, self.page.get(get_redirect=True))
             if match:
                 self._fileName = match.group(1)

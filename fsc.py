@@ -2,7 +2,7 @@
 """
 This script is derived from the source of fscBot which
 can be found at https://github.com/Zitrax/fscBot 
-fpcBot source was originally written by User Daniel78 of commons.wikimedia.org
+fscBot was written by Daniel78 at commons.wikimedia.org
 
 This bot runs as FSCBot on the commons.wikimedia.org
 It implements vote counting and supports
@@ -635,7 +635,7 @@ class Candidate:
         """Get the audio page itself"""
         return pywikibot.Page(G_Site, self.fileName())
 
-    def addAssessments(self):
+    def addFPtags(self):
         """
         Adds the the assessments template to a featured
         sounds descripion page.
@@ -670,7 +670,7 @@ class Candidate:
             new_text = re.sub(AssR, new_ass, old_text)
             if new_text == old_text:
                 out(
-                    "No change in addAssessments, '%s' already featured."
+                    "No change in addFPtags, '%s' already featured."
                     % self.cleanTitle()
                 )
                 return
@@ -1021,7 +1021,7 @@ class FSCandidate(Candidate):
             return
         self.addToFeaturedList(re.search(r"(.*?)(?:/|$)", fcategory).group(1))
         self.addToCategorizedFeaturedList(fcategory)
-        self.addAssessments()
+        self.addFPtags()
         self.addToCurrentMonth()
         self.notifyNominator()
         self.moveToLog(self._proString)

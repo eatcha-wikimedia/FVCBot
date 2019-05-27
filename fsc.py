@@ -128,7 +128,7 @@ class Candidate:
 
     def uploader(self):
         """Return the link to the user that uploaded the nominated audio"""
-        page = pywikibot.Page(COMMONS, self.fileName())
+        page = pywikibot.Page(G_Site, self.fileName())
         history = page.getVersionHistory(reverseOrder=True, total=1)
         if not history:
             return "Unknown"

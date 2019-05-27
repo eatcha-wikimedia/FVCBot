@@ -612,7 +612,7 @@ class Candidate:
         # A few categories are treated specially, the rest is appended to the last gallery
         if category == "Video-Performance":
             new_text = re.sub(
-                LastImageR,
+                LastSoundR,
                 r"\1\n[[%s|thumb|300px|left|%s]]"
                 % (self.fileName(), self.cleanTitle()),
                 old_text,
@@ -1475,8 +1475,8 @@ ImagesSizeR = re.compile(r"\|.*?(\d+)\s*px")
 # Find if there is a thumb parameter specified
 ImagesThumbR = re.compile(r"\|\s*thumb\b")
 # Finds the last audio link on a page
-LastImageR = re.compile(
-    r"(?s)(\[\[(?:[Ff]ile|[Ii]mage):[^\n]*\]\])(?!.*\[\[(?:[Ff]ile|[Ii]mage):)"
+LastSoundR = re.compile(
+    r"(?s)(\[\[(?:[Ff]ile|[Ss]ound):[^\n]*\]\])(?!.*\[\[(?:[Ff]ile|[Ss]ound):)"
 )
 
 # Auto reply yes to all questions

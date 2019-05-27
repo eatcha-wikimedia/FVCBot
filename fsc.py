@@ -34,8 +34,6 @@ from pywikibot import config
 from tendo import singleton
 
 
-COMMONS = pywikibot.Site('commons', 'commons')
-
 
 class NotImplementedException(Exception):
     """Not implemented"""
@@ -557,7 +555,7 @@ class Candidate:
         """
 
         listpage = "Commons:Featured sounds, list"
-        page = pywikibot.Page(COMMONS, listpage)
+        page = pywikibot.Page(G_Site, listpage)
         old_text = page.get(get_redirect=True)
 
         # First check if we are already on the page,
@@ -597,7 +595,7 @@ class Candidate:
         @param category The categorization category
         """
         catpage = "Commons:Featured sounds/" + category
-        page = pywikibot.Page(COMMONS, catpage)
+        page = pywikibot.Page(G_Site, catpage)
         old_text = page.get(get_redirect=True)
 
         # First check if we are already on the page,
@@ -635,7 +633,7 @@ class Candidate:
 
     def getImagePage(self):
         """Get the audio page itself"""
-        return pywikibot.Page(COMMONS, self.fileName())
+        return pywikibot.Page(G_Site, self.fileName())
 
     def addAssessments(self):
         """
@@ -695,7 +693,7 @@ class Candidate:
         This is ==STEP 4== of the parking procedure
         """
         monthpage = "Commons:Featured_sounds/chronological/current_month"
-        page = pywikibot.Page(COMMONS, monthpage)
+        page = pywikibot.Page(G_Site, monthpage)
         old_text = page.get(get_redirect=True)
 
         # First check if we are already on the page,
@@ -737,7 +735,7 @@ class Candidate:
         This is ==STEP 5== of the parking procedure
         """
         talk_link = "User_talk:%s" % self.nominator(link=False)
-        talk_page = pywikibot.Page(COMMONS, talk_link)
+        talk_page = pywikibot.Page(G_Site, talk_link)
 
         try:
             old_text = talk_page.get(get_redirect=True)
@@ -800,7 +798,7 @@ class Candidate:
             current_month,
             today.year,
         )
-        log_page = pywikibot.Page(COMMONS, log_link)
+        log_page = pywikibot.Page(G_Site, log_link)
 
         # If the page does not exist we just create it ( put does that automatically )
         try:
@@ -824,7 +822,7 @@ class Candidate:
             )
 
         # Remove from current list
-        candidate_page = pywikibot.Page(COMMONS, self._listPageName)
+        candidate_page = pywikibot.Page(G_Site, self._listPageName)
         old_cand_text = candidate_page.get(get_redirect=True)
         new_cand_text = re.sub(
             r"{{\s*%s\s*}}.*?\n?" % wikipattern(self.page.title()), "", old_cand_text
@@ -885,7 +883,7 @@ class Candidate:
             return
 
         # Check if the audio page exist, if not we ignore this candidate
-        if not pywikibot.Page(COMMONS, self.fileName()).exists():
+        if not pywikibot.Page(G_Site, self.fileName()).exists():
             out("%s: (WARNING: ignoring, can't find audio page)" % self.cutTitle())
             return
 
@@ -1009,7 +1007,7 @@ class FSCandidate(Candidate):
         # Check if we have an alternative for a multi audio
         if self.audioCount() > 1:
             if len(results) > 5 and len(results[5]):
-                if not pywikibot.Page(COMMONS, results[5]).exists():
+                if not pywikibot.Page(G_Site, results[5]).exists():
                     out("%s: (ignoring, specified alternative not found)" % results[5])
                 else:
                     self._alternative = results[5]
@@ -1154,7 +1152,7 @@ def out(text, newline=True, date=False, color=None):
 def findCandidates(page_url, delist):
     """This finds all candidates on the main FSC page"""
 
-    page = pywikibot.Page(COMMONS, page_url)
+    page = pywikibot.Page(G_Site, page_url)
 
     candidates = []
     templates = page.templates()
@@ -1496,6 +1494,11 @@ G_Abort = False
 
 
 def main(*args):
+    global G_Auto
+    global G_Dry
+    global G_Threads
+    global G_LogNoTime
+    global G_MatchPattern
 
     # Will sys.exit(-1) if another instance is running
     me = singleton.SingleInstance()
@@ -1507,11 +1510,7 @@ def main(*args):
     worked = False
     delist = False
     fsc = False
-    global G_Auto
-    global G_Dry
-    global G_Threads
-    global G_LogNoTime
-    global G_MatchPattern
+   
 
     # First look for arguments that should be set for all operations
     i = 1
@@ -1560,6 +1559,7 @@ def main(*args):
         sys.exit(0)
 
     args = pywikibot.handle_args(*args)
+	G_Site = pywikibot.Site()
 
     # Abort on unknown arguments
     for arg in args:

@@ -2,7 +2,7 @@
 """
 This script is derived from the source of fscBot which
 can be found at https://github.com/Zitrax/fscBot 
-fscBot was written by Daniel78 at commons.wikimedia.org
+fpcBot source was originally written by User Daniel78 of commons.wikimedia.org
 
 This bot runs as FSCBot on the commons.wikimedia.org
 It implements vote counting and supports

@@ -631,7 +631,7 @@ class Candidate:
 
         self.commit(old_text, new_text, page, "Added [[%s]]" % self.fileName())
 
-    def getImagePage(self):
+    def getSoundPage(self):
         """Get the audio page itself"""
         return pywikibot.Page(G_Site, self.fileName())
 
@@ -643,7 +643,7 @@ class Candidate:
         This is ==STEP 3== of the parking procedure
 
         """
-        page = self.getImagePage()
+        page = self.getSoundPage()
         old_text = page.get(get_redirect=True)
 
         AssR = re.compile(r"{{\s*[Aa]ssessments\s*\|(.*)}}")
@@ -1073,7 +1073,7 @@ class DelistCandidate(Candidate):
         # if we are we will soon be rotated away anyway.
         # So just check and remove the candidate from any category pages
 
-        references = self.getImagePage().getReferences(withTemplateInclusion=False)
+        references = self.getSoundPage().getReferences(withTemplateInclusion=False)
         for ref in references:
             if ref.title().startswith("Commons:Featured sounds/"):
                 if ref.title().startswith("Commons:Featured sounds/chronological"):

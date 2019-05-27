@@ -533,7 +533,7 @@ class Candidate:
             return self._fileName
 
         self._fileName = re.sub(
-            "(%s.*?)([Ff]ile|[Ii]mage)" % candPrefix, r"\2", self.page.title()
+            "(%s.*?)([Ff]ile|[Ss]ound)" % candPrefix, r"\2", self.page.title()
         )
 
         if not pywikibot.Page(G_Site, self._fileName).exists():
@@ -1081,7 +1081,7 @@ class DelistCandidate(Candidate):
                     old_text = ref.get(get_redirect=True)
                     now = datetime.datetime.utcnow()
                     new_text = re.sub(
-                        r"(([Ff]ile|[Ii]mage):%s.*)\n"
+                        r"(([Ff]ile|[Ss]ound):%s.*)\n"
                         % wikipattern(self.cleanTitle(keepExtension=True)),
                         r"\1 '''Delisted %d-%02d-%02d (%s-%s)'''\n"
                         % (now.year, now.month, now.day, results[1], results[0]),
@@ -1093,7 +1093,7 @@ class DelistCandidate(Candidate):
                 else:
                     old_text = ref.get(get_redirect=True)
                     new_text = re.sub(
-                        r"(\[\[)?([Ff]ile|[Ii]mage):%s.*\n"
+                        r"(\[\[)?([Ff]ile|[Ss]ound):%s.*\n"
                         % wikipattern(self.cleanTitle(keepExtension=True)),
                         "",
                         old_text,
@@ -1401,7 +1401,7 @@ keep_templates = (
 # Used to remove the prefix and just print the file names
 # of the candidate titles.
 candPrefix = "Commons:Featured sound candidates/"
-PrefixR = re.compile("%s.*?([Ff]ile|[Ii]mage)?:" % candPrefix)
+PrefixR = re.compile("%s.*?([Ff]ile|[Ss]ound)?:" % candPrefix)
 
 # Looks for result counts, an example of such a line is:
 # '''result:''' 3 support, 2 oppose, 0 neutral => not featured.
@@ -1466,7 +1466,7 @@ WithdrawnR = re.compile(r"{{\s*(?:[wW]ithdrawn?|[fF]PD)\s*(\|.*)?}}", re.MULTILI
 # Nomination that contain the fpx template
 FsxR = re.compile(r"{{\s*FSX(\|.*)?}}", re.MULTILINE)
 # Counts the number of displayed audios
-SoundsR = re.compile(r"\[\[((?:[Ff]ile|[Ii]mage):[^|]+).*?\]\]")
+SoundsR = re.compile(r"\[\[((?:[Ff]ile|[Ss]ound):[^|]+).*?\]\]")
 # Look for a size specification of the audio link
 ImagesSizeR = re.compile(r"\|.*?(\d+)\s*px")
 # Find if there is a thumb parameter specified

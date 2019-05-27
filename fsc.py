@@ -1367,6 +1367,7 @@ neutral_templates = (
     "[Nn]eutral?",
     "[Oo]partisk",
     "[Nn]eutre",
+    "[Nn]",
     "[Nn]eutro",
     "נמנע",
     "[Nn]øytral",

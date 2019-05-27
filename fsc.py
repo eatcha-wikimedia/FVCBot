@@ -1500,7 +1500,7 @@ def main(*args):
     # Will sys.exit(-1) if another instance is running
     me = singleton.SingleInstance()
 
-    fpcPage = "Commons:Featured sound candidates/candidate_list"
+    FSClist = "Commons:Featured sound candidates/candidate_list"
     delistPage = "Commons:Featured_sound_candidates/removal"
     testLog = "Commons:Featured_sound_candidates/Log/January_2009"
 
@@ -1595,14 +1595,14 @@ def main(*args):
                 checkCandidates(Candidate.closePage, delistPage, delist=True)
             if fpc:
                 out("Closing fpc candidates...", color="lightblue")
-                checkCandidates(Candidate.closePage, fpcPage, delist=False)
+                checkCandidates(Candidate.closePage, FSClist, delist=False)
         elif arg == "-info":
             if delist:
                 out("Gathering info about delist candidates...", color="lightblue")
                 checkCandidates(Candidate.printAllInfo, delistPage, delist=True)
             if fpc:
                 out("Gathering info about fpc candidates...", color="lightblue")
-                checkCandidates(Candidate.printAllInfo, fpcPage, delist=False)
+                checkCandidates(Candidate.printAllInfo, FSClist, delist=False)
         elif arg == "-park":
             if G_Threads and G_Auto:
                 out(
@@ -1615,7 +1615,7 @@ def main(*args):
                 checkCandidates(Candidate.park, delistPage, delist=True)
             if fpc:
                 out("Parking fpc candidates...", color="lightblue")
-                checkCandidates(Candidate.park, fpcPage, delist=False)
+                checkCandidates(Candidate.park, FSClist, delist=False)
 
     if not worked:
         out("Warning - you need to specify an argument, see -help.", color="lightred")

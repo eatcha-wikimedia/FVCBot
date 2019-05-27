@@ -417,11 +417,11 @@ class Candidate:
             # We have several audios, check if they are too small to be counted
             for img in matches:
 
-                if re.search(ImagesThumbR, img.group(0)):
+                if re.search(ImageCommmentsThumbR, img.group(0)):
                     count -= 1
                 else:
                     s = re.search(ImagesSizeR, img.group(0))
-                    if s and (int(s.group(1)) <= 150):
+                    if s and (int(s.group(1)) <= 200):
                         count -= 1
 
         self._imgCount = count
@@ -1465,12 +1465,12 @@ KeepR = re.compile(r"{{\s*(?:%s)(\|.*)?\s*}}" % "|".join(keep_templates), re.MUL
 WithdrawnR = re.compile(r"{{\s*(?:[wW]ithdrawn?|[fF]PD)\s*(\|.*)?}}", re.MULTILINE)
 # Nomination that contain the fpx template
 FsxR = re.compile(r"{{\s*FSX(\|.*)?}}", re.MULTILINE)
+# Find if there is a thumb parameter specified to allow comments with small images
+ImageCommmentsThumbR = re.compile(r"\|\s*thumb\b")
 # Counts the number of displayed audios
 SoundsR = re.compile(r"\[\[((?:[Ff]ile|[Ss]ound):[^|]+).*?\]\]")
 # Look for a size specification of the audio link
 ImagesSizeR = re.compile(r"\|.*?(\d+)\s*px")
-# Find if there is a thumb parameter specified
-ImagesThumbR = re.compile(r"\|\s*thumb\b")
 # Finds the last audio link on a page
 LastSoundR = re.compile(
     r"(?s)(\[\[(?:[Ff]ile|[Ss]ound):[^\n]*\]\])(?!.*\[\[(?:[Ff]ile|[Ss]ound):)"

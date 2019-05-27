@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-This script is derived from the source of fscBot which
+This script is derived from the source of fpcBot which
 can be found at https://github.com/Zitrax/fscBot 
 fscBot was written by Daniel78 at commons.wikimedia.org
 

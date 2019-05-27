@@ -1223,9 +1223,6 @@ def filter_content(text):
     """
     text = strip_tag(text, "s")
     text = strip_tag(text, "nowiki")
-    text = re.sub(
-        r"(?s){{\s*[Ii]mageNote\s*\|.*?}}.*{{\s*[iI]mageNoteEnd.*?}}", "", text
-    )
     text = re.sub(r"(?s)<!--.*?-->", "", text)
     return text
 

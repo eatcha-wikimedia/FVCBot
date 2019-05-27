@@ -168,7 +168,7 @@ class Candidate:
 
     def isFSX(self):
         """Page marked with FSX template"""
-        return len(re.findall(FpxR, self.page.get(get_redirect=True)))
+        return len(re.findall(FsxR, self.page.get(get_redirect=True)))
 
     def rulesOfFifthDay(self):
         """Check if any of the rules of the fifth day can be applied"""
@@ -408,7 +408,7 @@ class Candidate:
         text = self.page.get(get_redirect=True)
 
         matches = []
-        for m in re.finditer(ImagesR, text):
+        for m in re.finditer(SoundsR, text):
             matches.append(m)
 
         count = len(matches)
@@ -537,7 +537,7 @@ class Candidate:
         )
 
         if not pywikibot.Page(G_Site, self._fileName).exists():
-            match = re.search(ImagesR, self.page.get(get_redirect=True))
+            match = re.search(SoundsR, self.page.get(get_redirect=True))
             if match:
                 self._fileName = match.group(1)
 
@@ -1467,9 +1467,9 @@ KeepR = re.compile(r"{{\s*(?:%s)(\|.*)?\s*}}" % "|".join(keep_templates), re.MUL
 # must be able to detect after the pipe symbol
 WithdrawnR = re.compile(r"{{\s*(?:[wW]ithdrawn?|[fF]PD)\s*(\|.*)?}}", re.MULTILINE)
 # Nomination that contain the fpx template
-FpxR = re.compile(r"{{\s*FSX(\|.*)?}}", re.MULTILINE)
+FsxR = re.compile(r"{{\s*FSX(\|.*)?}}", re.MULTILINE)
 # Counts the number of displayed audios
-ImagesR = re.compile(r"\[\[((?:[Ff]ile|[Ii]mage):[^|]+).*?\]\]")
+SoundsR = re.compile(r"\[\[((?:[Ff]ile|[Ii]mage):[^|]+).*?\]\]")
 # Look for a size specification of the audio link
 ImagesSizeR = re.compile(r"\|.*?(\d+)\s*px")
 # Find if there is a thumb parameter specified

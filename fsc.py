@@ -646,7 +646,7 @@ class Candidate:
         page = self.getSoundPage()
         old_text = page.get(get_redirect=True)
 
-        AssR = re.compile(r"{{\s*[Aa]ssessments\s*\|(.*)}}")
+        AssR = re.compile(r"{{\s*FS_promoted\s*\|(.*)}}")
 
         fn_or = self.fileName(alternative=False)  # Original filename
         fn_al = self.fileName(alternative=True)  # Alternative filename
@@ -666,7 +666,7 @@ class Candidate:
             params += comnom
             if params.find("|") != 0:
                 params = "|" + params
-            new_ass = "{{Assessments%s}}" % params
+            new_ass = "{{FS_promoted%s}}" % params
             new_text = re.sub(AssR, new_ass, old_text)
             if new_text == old_text:
                 out(
@@ -679,10 +679,10 @@ class Candidate:
             end = findEndOfTemplate(old_text, "[Ii]nformation")
             new_text = (
                 old_text[:end]
-                + "\n{{Assessments|featured=1%s}}\n" % comnom
+                + "\n{{FS_promoted|featured=1%s}}\n" % comnom
                 + old_text[end:]
             )
-            # new_text = re.sub(r'({{\s*[Ii]nformation)',r'{{Assessments|featured=1}}\n\1',old_text)
+            # new_text = re.sub(r'({{\s*[Ii]nformation)',r'{{FS_promoted|featured=1}}\n\1',old_text)
 
         self.commit(old_text, new_text, page, "FSC promotion")
 
@@ -849,7 +849,7 @@ class Candidate:
         2. If verified and featured:
           * Add page to 'Commons:Featured sounds, list'
           * Add to subpage of 'Commons:Featured sounds, list'
-          * Add {{Assessments|featured=1}} or just the parameter if the template is already there
+          * Add {{FS_promoted|featured=1}} or just the parameter if the template is already there
             to the sound page (should also handle subpages)
           * Add the sound to the 'Commons:Featured_sounds/chronological/current_month'
           * Add the template {{FSpromotion|File:XXXXX.flac}} to the Talk Page of the nominator.
@@ -1062,7 +1062,7 @@ class DelistCandidate(Candidate):
     def handlePassedCandidate(self, results):
         # Delistings does not care about the category
         self.removeFromFeaturedLists(results)
-        self.removeAssessments()
+        self.removeFS_promoted()
         self.moveToLog(self._proString)
 
     def removeFromFeaturedLists(self, results):
@@ -1102,7 +1102,7 @@ class DelistCandidate(Candidate):
                         old_text, new_text, ref, "Removing [[%s]]" % self.fileName()
                     )
 
-    def removeAssessments(self):
+    def removeFS_promoted(self):
         """Remove FS status from an audio"""
 
         audioPage = self.getSoundPage()
@@ -1117,7 +1117,7 @@ class DelistCandidate(Candidate):
         # The replacement string needs to use the octal value for the char '2' to
         # not confuse python as '\12\2' would obviously not work
         new_text = re.sub(
-            r"({{[Aa]ssessments\s*\|.*(?:com|featured)\s*=\s*)1(.*?}})",
+            r"({{FS_promoted\s*\|.*(?:com|featured)\s*=\s*)1(.*?}})",
             r"\1\062\2",
             new_text,
         )

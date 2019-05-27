@@ -637,7 +637,7 @@ class Candidate:
 
     def addFPtags(self):
         """
-        Adds the the assessments template to a featured
+        Adds the the FS_promoted template to a featured
         sounds descripion page.
 
         This is ==STEP 3== of the parking procedure
@@ -654,7 +654,7 @@ class Candidate:
         # differs from the alternative filename.
         comnom = "|com-nom=%s" % fn_or.replace("File:", "") if fn_or != fn_al else ""
 
-        # First check if there already is an assessments template on the page
+        # First check if there already is an FS_promoted template on the page
         params = re.search(AssR, old_text)
         if params:
             # Make sure to remove any existing com/features or subpage params
@@ -675,7 +675,7 @@ class Candidate:
                 )
                 return
         else:
-            # There is no assessments template so just add it
+            # There is no FS_promoted template so just add it
             end = findEndOfTemplate(old_text, "[Ii]nformation")
             new_text = (
                 old_text[:end]
@@ -1113,7 +1113,7 @@ class DelistCandidate(Candidate):
             r"{{[Ff]eatured[ _]sound}}", "{{Delisted sound}}", old_text
         )
 
-        # Then check for the assessments template
+        # Then check for the FS_promoted template
         # The replacement string needs to use the octal value for the char '2' to
         # not confuse python as '\12\2' would obviously not work
         new_text = re.sub(

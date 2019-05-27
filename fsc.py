@@ -1105,7 +1105,7 @@ class DelistCandidate(Candidate):
     def removeAssessments(self):
         """Remove FS status from an audio"""
 
-        audioPage = self.getImagePage()
+        audioPage = self.getSoundPage()
         old_text = audioPage.get(get_redirect=True)
 
         # First check for the old {{Featured sound}} template

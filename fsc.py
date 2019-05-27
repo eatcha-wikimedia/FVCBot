@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-This script is derived from the source of FPCBot which
-can be found at https://github.com/Zitrax/FPCBot 
-FPCBot was written by Daniel78 at commons.wikimedia.org
+This script is derived from the source of fscBot which
+can be found at https://github.com/Zitrax/fscBot 
+fscBot was written by Daniel78 at commons.wikimedia.org
 
 This bot runs as FSCBot on the commons.wikimedia.org
 It implements vote counting and supports
@@ -17,8 +17,8 @@ It adds the following commandline arguments:
 -auto             Do not ask before commiting edits to articles
 -dry              Do not submit any edits, just print them
 -threads          Use threads to speed things up, can't be used in interactive mode
--fpc              Handle the featured candidates (if neither -fpc or -delist is used all candidates are handled)
--delist           Handle the delisting candidates (if neither -fpc or -delist is used all candidates are handled)
+-fsc              Handle the featured candidates (if neither -fsc or -delist is used all candidates are handled)
+-delist           Handle the delisting candidates (if neither -fsc or -delist is used all candidates are handled)
 -notime           Avoid displaying timestamps in log output
 -match pattern    Only operate on candidates matching this pattern
 """
@@ -1178,7 +1178,7 @@ def checkCandidates(check, page, delist):
 
     @param check  A function in Candidate to call on each candidate
     @param page   A page containing all candidates
-    @param delist Boolean, telling whether this is delistings of fpcs
+    @param delist Boolean, telling whether this is delistings of fscs
     """
     candidates = findCandidates(page, delist)
 
@@ -1506,7 +1506,7 @@ def main(*args):
 
     worked = False
     delist = False
-    fpc = False
+    fsc = False
     global G_Auto
     global G_Dry
     global G_Threads
@@ -1532,8 +1532,8 @@ def main(*args):
             delist = True
             sys.argv.remove(arg)
             continue
-        elif arg == "-fpc":
-            fpc = True
+        elif arg == "-fsc":
+            fsc = True
             sys.argv.remove(arg)
             continue
         elif arg == "-notime":
@@ -1550,9 +1550,9 @@ def main(*args):
                 sys.exit(0)
         i += 1
 
-    if not delist and not fpc:
+    if not delist and not fsc:
         delist = True
-        fpc = True
+        fsc = True
 
     # Can not use interactive mode with threads
     if G_Threads and (not G_Dry and not G_Auto):
@@ -1569,7 +1569,7 @@ def main(*args):
             "-info",
             "-park",
             "-threads",
-            "-fpc",
+            "-fsc",
             "-delist",
             "-help",
             "-notime",
@@ -1587,21 +1587,21 @@ def main(*args):
         if arg == "-test":
             if delist:
                 out("-test not supported for delisting candidates")
-            if fpc:
+            if fsc:
                 checkCandidates(Candidate.compareResultToCount, testLog, delist=False)
         elif arg == "-close":
             if delist:
                 out("Closing delist candidates...", color="lightblue")
                 checkCandidates(Candidate.closePage, delistPage, delist=True)
-            if fpc:
-                out("Closing fpc candidates...", color="lightblue")
+            if fsc:
+                out("Closing fsc candidates...", color="lightblue")
                 checkCandidates(Candidate.closePage, FSClist, delist=False)
         elif arg == "-info":
             if delist:
                 out("Gathering info about delist candidates...", color="lightblue")
                 checkCandidates(Candidate.printAllInfo, delistPage, delist=True)
-            if fpc:
-                out("Gathering info about fpc candidates...", color="lightblue")
+            if fsc:
+                out("Gathering info about fsc candidates...", color="lightblue")
                 checkCandidates(Candidate.printAllInfo, FSClist, delist=False)
         elif arg == "-park":
             if G_Threads and G_Auto:
@@ -1613,8 +1613,8 @@ def main(*args):
             if delist:
                 out("Parking delist candidates...", color="lightblue")
                 checkCandidates(Candidate.park, delistPage, delist=True)
-            if fpc:
-                out("Parking fpc candidates...", color="lightblue")
+            if fsc:
+                out("Parking fsc candidates...", color="lightblue")
                 checkCandidates(Candidate.park, FSClist, delist=False)
 
     if not worked:

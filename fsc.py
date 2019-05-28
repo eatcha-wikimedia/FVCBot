@@ -1496,6 +1496,7 @@ def main(*args):
     global G_Threads
     global G_LogNoTime
     global G_MatchPattern
+    global G_Site
 
     # Will sys.exit(-1) if another instance is running
     me = singleton.SingleInstance()

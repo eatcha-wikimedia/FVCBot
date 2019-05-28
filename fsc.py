@@ -1556,7 +1556,7 @@ def main(*args):
         sys.exit(0)
 
     args = pywikibot.handle_args(*args)
-	G_Site = pywikibot.Site()
+    G_Site = pywikibot.Site()
 
     # Abort on unknown arguments
     for arg in args:

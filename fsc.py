@@ -1,8 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-This script is derived from the source of fpcBot which
-can be found at https://github.com/Zitrax/fscBot 
-fscBot was written by Daniel78 at commons.wikimedia.org
+This script is derived from the source code of fpcBot https://github.com/Zitrax/fscBot  which was originally written by 
+Daniel78 at commons.wikimedia.org or Zitax on GitHub. 
+
+FSCBot's latest source can be found at https://github.com/eatcha-wikimedia/FSCBot
+Its user page is at https://commons.wikimedia.org/wiki/User:FSCBot
+
+This bot runs on Toollabs (Eqiad cluster), a Wikimedia Foundation, Inc server Cluster in Virginia, Ashburn, USA
+
+Bot's recent edits can be found at https://commons.wikimedia.org/wiki/Special:Contributions/FSCBot
+
+This bot runs in 3 shifts 5:00, 13:00, 21:00 UTC  , the cronjob looks like the following. 
+0 5,13,21 * * * jsub -once python3 fsc.py -park -close -auto
 
 This bot runs as FSCBot on the commons.wikimedia.org
 It implements vote counting and supports
@@ -30,7 +39,7 @@ import threading, time
 from pywikibot import config
 
 # Import for single process check
-# dependency can be installed using "easy_install tendo"
+# dependency can be installed using "pip install tendo" or "easy_install tendo"
 from tendo import singleton
 
 
@@ -51,7 +60,7 @@ class ThreadCheckCandidate(threading.Thread):
 
 class Candidate:
     """
-    This is one sound candidate
+    This is a sound candidate
 
     This class just serves as base for the DelistCandidate and FSCandidate classes
     """
@@ -140,8 +149,8 @@ class Candidate:
 
     def countVotes(self):
         """
-        Counts all the votes for this nomination
-        and subtracts eventual striked out votes
+        Counts all votes for this nomination
+        and subtracts striked out votes
         """
 
         if self._votesCounted:
@@ -182,7 +191,7 @@ class Candidate:
             return True
 
         # Second rule of the fifth day
-        if self._pro >= 7 and self._con == 0:
+        if self._pro >= 6 and self._con == 0:
             return True
 
     def closePage(self):
@@ -373,8 +382,7 @@ class Candidate:
     def isPassed(self):
         """
         Find if an audio can be featured.
-        Does not check the age, it needs to be
-        checked using isDone()
+        Age is checked using isDone() 
         """
 
         if self.isWithdrawn():
@@ -386,7 +394,7 @@ class Candidate:
         return self._pro >= 5 and (self._pro >= 2 * self._con)
 
     def isIgnored(self):
-        """Some nominations currently require manual check"""
+        """Nomination with more than 1 sound is not supported. It's manual as of now."""
         return self.audioCount() > 1
 
     def sectionCount(self):
@@ -398,9 +406,9 @@ class Candidate:
         """
         Count the number of audios that are displayed
 
-        Does not count audios that are below a certain threshold
+        Does not count files that are below a certain threshold
         as they probably are just inline icons and not separate
-        edits of this candidate.
+        alternative of this candidate.
         """
         if self._imgCount:
             return self._imgCount
@@ -414,7 +422,7 @@ class Candidate:
         count = len(matches)
 
         if count >= 2:
-            # We have several audios, check if they are too small to be counted
+            # If we have several files, check if they are too small to be counted. Some users use images in comments. 200px is the limit
             for img in matches:
 
                 if re.search(ImageCommmentsThumbR, img.group(0)):
@@ -546,7 +554,7 @@ class Candidate:
     def addToFeaturedList(self, category):
         """
         Will add this page to the list of featured audios.
-        This uses just the base of the category, like 'Animals'.
+        This uses just the base of the category, like 'Music'.
         Should only be called on closed and verified candidates
 
         This is ==STEP 1== of the parking procedure
@@ -857,7 +865,7 @@ class Candidate:
            to the log, f.ex. 'Commons:Featured sound candidates/Log/August 2009'
         """
 
-        # First make a check that the page actually exist:
+        # Making sure that the page actually exist:
         if not self.page.exists():
             out("%s: (no such page?!)" % self.cutTitle())
             return
@@ -882,7 +890,7 @@ class Candidate:
             out("%s: (ignoring, was FSXed)" % self.cutTitle())
             return
 
-        # Check if the audio page exist, if not we ignore this candidate
+        # Check if the audio file page exist, if not we ignore the candidate
         if not pywikibot.Page(G_Site, self.fileName()).exists():
             out("%s: (WARNING: ignoring, can't find audio page)" % self.cutTitle())
             return
@@ -1291,7 +1299,7 @@ Month = {
 }
 
 
-# List of valid templates
+# List of allowed voting templates, you are encouraged to add templates in diffrent languages
 # They are taken from the page Commons:Polling_templates and some common redirects
 support_templates = (
     "[Ss]upport",
@@ -1315,7 +1323,7 @@ support_templates = (
     "[Ss]for",
     "за",
     "[Ss]tödjer",
-    "เห็นด้วย",
+           "เห็นด้วย",
     "[Dd]estek",
     "[Aa] favore?",
     "[Ss]trong support",
@@ -1349,7 +1357,7 @@ oppose_templates = (
     "[Mm]ot",
     "против",
     "[Ss]tödjer ej",
-    "ไม่เห็นด้วย",
+           "ไม่เห็นด้วย",
     "[Kk]arsi",
     "FPX contested",
     "[Cc]ontra",
@@ -1373,7 +1381,7 @@ neutral_templates = (
     "[Hh]lutlaus",
     "중립",
     "[Nn]eodrach",
-    "เป็นกลาง",
+           "เป็นกลาง",
     "[Vv]n",
     "[Nn]eutrale",
 )
@@ -1390,7 +1398,7 @@ keep_templates = (
     "[Bb]ehold",
     "[Mm]anter",
     "[Bb]ehåll",
-    "เก็บ",
+           "เก็บ",
     "保留",
 )
 
@@ -1463,15 +1471,20 @@ KeepR = re.compile(r"{{\s*(?:%s)(\|.*)?\s*}}" % "|".join(keep_templates), re.MUL
 # This template has an optional string which we
 # must be able to detect after the pipe symbol
 WithdrawnR = re.compile(r"{{\s*(?:[wW]ithdrawn?|[fF]PD)\s*(\|.*)?}}", re.MULTILINE)
-# Nomination that contain the fpx template
+
+# Nomination that contain the fsx template
 FsxR = re.compile(r"{{\s*FSX(\|.*)?}}", re.MULTILINE)
+
 # Find if there is a thumb parameter specified to allow comments with small images
 ImageCommmentsThumbR = re.compile(r"\|\s*thumb\b")
-# Counts the number of displayed audios
+
+# Counts the number of displayed files both audio and video
 SoundsR = re.compile(r"\[\[((?:[Ff]ile|[Ss]ound):[^|]+).*?\]\]")
-# Look for a size specification of the audio link
+
+# Look for a size specification of the audio link, rember the 200px limit on size
 ImagesSizeR = re.compile(r"\|.*?(\d+)\s*px")
-# Finds the last audio link on a page
+
+# Get the last audio link on a page
 LastSoundR = re.compile(
     r"(?s)(\[\[(?:[Ff]ile|[Ss]ound):[^\n]*\]\])(?!.*\[\[(?:[Ff]ile|[Ss]ound):)"
 )
@@ -1503,7 +1516,8 @@ def main(*args):
 
     FSClist = "Commons:Featured sound candidates/candidate_list"
     delistPage = "Commons:Featured_sound_candidates/removal"
-    testLog = "Commons:Featured_sound_candidates/Log/January_2009"
+	# This projeckt was dead for decades so may 2019 is the best testlog IMO
+    testLog = "Commons:Featured_sound_candidates/Log/May_2019"
 
     worked = False
     delist = False

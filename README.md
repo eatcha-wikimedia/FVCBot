@@ -8,7 +8,7 @@ Hi, I’m Featured sound candidates bot. My job includes counting of votes, clos
 
 
 
-## Emergency bot shutoff button, can be used by wikimedia commons admins only
+### Emergency bot shutoff button, can be used by wikimedia commons admins only
 
 [![FSCBot - Wikimedia Commons](https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Shutdown_button_red_wikimedia.svg/120px-Shutdown_button_red_wikimedia.svg.png)](https://commons.wikimedia.org/w/index.php?title=Special:Blockip&wpTarget=FSCBot&wpExpiry=indefinite&wpAnonOnly=0&wpHardBlock=1&wpAutoBlock=0&wpCreateAccount=0&wpReason=other&wpReason-other=Bot%20malfunctioning:%20)
 

@@ -175,8 +175,8 @@ class Candidate:
         withdrawn = len(re.findall(WithdrawnR, text))
         return withdrawn > 0
 
-    def isFSX(self):
-        """Page marked with FSX template"""
+    def isFVX(self):
+        """Page marked with FVX template"""
         return len(re.findall(FsxR, self.page.get(get_redirect=True)))
 
     def rulesOfNinthDay(self):
@@ -208,11 +208,11 @@ class Candidate:
             out('"%s" no such page?!' % self.cutTitle())
             return
 
-        if (self.isWithdrawn() or self.isFSX()) and self.videoCount() <= 1:
+        if (self.isWithdrawn() or self.isFVX()) and self.videoCount() <= 1:
             # Will close withdrawn nominations if there are more than one
             # full day since the last edit
 
-            why = "withdrawn" if self.isWithdrawn() else "FSXed"
+            why = "withdrawn" if self.isWithdrawn() else "FVXed"
 
             oldEnough = self.daysSinceLastEdit() > 0
             out(
@@ -464,8 +464,8 @@ class Candidate:
             out("%s: (ignoring, was withdrawn)" % self.cutTitle())
             return
 
-        elif self.isFSX():
-            out("%s: (ignoring, was FSXed)" % self.cutTitle())
+        elif self.isFVX():
+            out("%s: (ignoring, was FVXed)" % self.cutTitle())
             return
 
         elif not res:
@@ -889,8 +889,8 @@ class Candidate:
             out("%s: (ignoring, was withdrawn)" % self.cutTitle())
             return
 
-        if self.isFSX():
-            out("%s: (ignoring, was FSXed)" % self.cutTitle())
+        if self.isFVX():
+            out("%s: (ignoring, was FVXed)" % self.cutTitle())
             return
 
         # Check if the video file page exist, if not we ignore the candidate
@@ -1476,7 +1476,7 @@ KeepR = re.compile(r"{{\s*(?:%s)(\|.*)?\s*}}" % "|".join(keep_templates), re.MUL
 WithdrawnR = re.compile(r"{{\s*(?:[wW]ithdrawn?|[fF]PD)\s*(\|.*)?}}", re.MULTILINE)
 
 # Nomination that contain the fsx template
-FsxR = re.compile(r"{{\s*FSX(\|.*)?}}", re.MULTILINE)
+FsxR = re.compile(r"{{\s*FVX(\|.*)?}}", re.MULTILINE)
 
 # Find if there is a thumb parameter specified to allow comments with small images
 ImageCommmentsThumbR = re.compile(r"\|\s*thumb\b")

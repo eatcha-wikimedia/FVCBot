@@ -648,7 +648,7 @@ class Candidate:
 
     def addFPtags(self):
         """
-        Adds the the FS_promoted template to a featured
+        Adds the the FV_promoted template to a featured
         videos descripion page.
 
         This is ==STEP 3== of the parking procedure
@@ -657,7 +657,7 @@ class Candidate:
         page = self.getVideoPage()
         old_text = page.get(get_redirect=True)
 
-        AssR = re.compile(r"{{\s*FS_promoted\s*\|(.*)}}")
+        AssR = re.compile(r"{{\s*FV_promoted\s*\|(.*)}}")
 
         fn_or = self.fileName(alternative=False)  # Original filename
         fn_al = self.fileName(alternative=True)  # Alternative filename
@@ -665,7 +665,7 @@ class Candidate:
         # differs from the alternative filename.
         comnom = "|com-nom=%s" % fn_or.replace("File:", "") if fn_or != fn_al else ""
 
-        # First check if there already is an FS_promoted template on the page
+        # First check if there already is an FV_promoted template on the page
         params = re.search(AssR, old_text)
         if params:
             # Make sure to remove any existing com/features or subpage params
@@ -677,7 +677,7 @@ class Candidate:
             params += comnom
             if params.find("|") != 0:
                 params = "|" + params
-            new_ass = "{{FS_promoted%s}}" % params
+            new_ass = "{{FV_promoted%s}}" % params
             new_text = re.sub(AssR, new_ass, old_text)
             if new_text == old_text:
                 out(
@@ -686,14 +686,14 @@ class Candidate:
                 )
                 return
         else:
-            # There is no FS_promoted template so just add it
+            # There is no FV_promoted template so just add it
             end = findEndOfTemplate(old_text, "[Ii]nformation")
             new_text = (
                 old_text[:end]
-                + "\n{{FS_promoted|featured=1%s}}\n" % comnom
+                + "\n{{FV_promoted|featured=1%s}}\n" % comnom
                 + old_text[end:]
             )
-            # new_text = re.sub(r'({{\s*[Ii]nformation)',r'{{FS_promoted|featured=1}}\n\1',old_text)
+            # new_text = re.sub(r'({{\s*[Ii]nformation)',r'{{FV_promoted|featured=1}}\n\1',old_text)
 
         self.commit(old_text, new_text, page, "FVC promotion")
 
@@ -763,7 +763,7 @@ class Candidate:
         # First check if we are already on the page,
         # in that case skip. Can happen if the process
         # have been previously interrupted.
-        if re.search(r"{{FSpromotion\|%s}}" % wikipattern(fn_or), old_text):
+        if re.search(r"{{FVpromotion\|%s}}" % wikipattern(fn_or), old_text):
             out(
                 "Skipping notifyNominator for '%s', page already listed at '%s'."
                 % (self.cleanTitle(), talk_link),
@@ -775,7 +775,7 @@ class Candidate:
         # differs from the alternative filename.
         subpage = "|subpage=%s" % fn_or if fn_or != fn_al else ""
 
-        new_text = old_text + "\n\n== FS Promotion ==\n{{FSpromotion|%s%s}} /~~~~" % (
+        new_text = old_text + "\n\n== FS Promotion ==\n{{FVpromotion|%s%s}} /~~~~" % (
             fn_al,
             subpage,
         )
@@ -860,10 +860,10 @@ class Candidate:
         2. If verified and featured:
           * Add page to 'Commons:Featured videos, list'
           * Add to subpage of 'Commons:Featured videos, list'
-          * Add {{FS_promoted|featured=1}} or just the parameter if the template is already there
+          * Add {{FV_promoted|featured=1}} or just the parameter if the template is already there
             to the video page (should also handle subpages)
           * Add the video to the 'Commons:Featured_videos/chronological/current_month'
-          * Add the template {{FSpromotion|File:XXXXX.flac}} to the Talk Page of the nominator.
+          * Add the template {{FVpromotion|File:XXXXX.webm}} to the Talk Page of the nominator.
         3. If featured or not move it from 'Commons:Featured video candidates/candidate list'
            to the log, f.ex. 'Commons:Featured video candidates/Log/August 2009'
         """
@@ -1073,7 +1073,7 @@ class DelistCandidate(Candidate):
     def handlePassedCandidate(self, results):
         # Delistings does not care about the category
         self.removeFromFeaturedLists(results)
-        self.removeFS_promoted()
+        self.removeFV_promoted()
         self.moveToLog(self._proString)
 
     def removeFromFeaturedLists(self, results):
@@ -1113,7 +1113,7 @@ class DelistCandidate(Candidate):
                         old_text, new_text, ref, "Removing [[%s]]" % self.fileName()
                     )
 
-    def removeFS_promoted(self):
+    def removeFV_promoted(self):
         """Remove FS status from an video"""
 
         videoPage = self.getVideoPage()
@@ -1124,11 +1124,11 @@ class DelistCandidate(Candidate):
             r"{{[Ff]eatured[ _]video}}", "{{Delisted video}}", old_text
         )
 
-        # Then check for the FS_promoted template
+        # Then check for the FV_promoted template
         # The replacement string needs to use the octal value for the char '2' to
         # not confuse python as '\12\2' would obviously not work
         new_text = re.sub(
-            r"({{FS_promoted\s*\|.*(?:com|featured)\s*=\s*)1(.*?}})",
+            r"({{FV_promoted\s*\|.*(?:com|featured)\s*=\s*)1(.*?}})",
             r"\1\062\2",
             new_text,
         )

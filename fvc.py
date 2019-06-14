@@ -177,7 +177,7 @@ class Candidate:
 
     def isFVX(self):
         """Page marked with FVX template"""
-        return len(re.findall(FVXR, self.page.get(get_redirect=True)))
+        return len(re.findall(FsxR, self.page.get(get_redirect=True)))
 
     def rulesOfNinthDay(self):
         """Check if any of the rules of the ninth day can be applied"""
@@ -1475,8 +1475,8 @@ KeepR = re.compile(r"{{\s*(?:%s)(\|.*)?\s*}}" % "|".join(keep_templates), re.MUL
 # must be able to detect after the pipe symbol
 WithdrawnR = re.compile(r"{{\s*(?:[wW]ithdrawn?|[fF]PD)\s*(\|.*)?}}", re.MULTILINE)
 
-# Nomination that contain the FVX template
-FVXR = re.compile(r"{{\s*FVX(\|.*)?}}", re.MULTILINE)
+# Nomination that contain the fsx template
+FsxR = re.compile(r"{{\s*FVX(\|.*)?}}", re.MULTILINE)
 
 # Find if there is a thumb parameter specified to allow comments with small images
 ImageCommmentsThumbR = re.compile(r"\|\s*thumb\b")

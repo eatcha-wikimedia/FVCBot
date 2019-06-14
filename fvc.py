@@ -179,19 +179,19 @@ class Candidate:
         """Page marked with FSX template"""
         return len(re.findall(FsxR, self.page.get(get_redirect=True)))
 
-    def rulesOfFifthDay(self):
-        """Check if any of the rules of the fifth day can be applied"""
-        if self.daysOld() < 5:
+    def rulesOfNinthDay(self):
+        """Check if any of the rules of the ninth day can be applied"""
+        if self.daysOld() < 9:
             return False
 
         self.countVotes()
 
-        # First rule of the fifth day
+        # First rule of the ninth day
         if self._pro <= 1:
             return True
 
-        # Second rule of the fifth day
-        if self._pro >= 6 and self._con == 0:
+        # Second rule of the ninth day
+        if self._pro >= 7 and self._con == 0:
             return True
 
     def closePage(self):
@@ -227,10 +227,10 @@ class Candidate:
             self.moveToLog(why)
             return True
 
-        # We skip rule of the fifth day if we have several alternatives
-        fifthDay = False if self.videoCount() > 1 else self.rulesOfFifthDay()
+        # We skip rule of the ninth day if we have several alternatives
+        ninthDay = False if self.videoCount() > 1 else self.rulesOfNinthDay()
 
-        if not fifthDay and not self.isDone():
+        if not ninthDay and not self.isDone():
             out('"%s" is still active, ignoring' % self.cutTitle())
             return False
 
@@ -267,7 +267,7 @@ class Candidate:
             new_text,
             self.page,
             self.getCloseCommitComment()
-            + (" (FifthDay=%s)" % ("yes" if fifthDay else "no")),
+            + (" (NinthDay=%s)" % ("yes" if ninthDay else "no")),
         )
 
         return True

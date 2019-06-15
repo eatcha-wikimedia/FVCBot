@@ -191,7 +191,7 @@ class Candidate:
             return True
 
         # Second rule of the ninth day
-        if self._pro >= 7 and self._con == 0:
+        if self._pro >= 7
             return True
 	    # Third rule of the ninth day
 	if self._con >= 4:
@@ -380,7 +380,7 @@ class Candidate:
         """
         Checks if a nomination can be closed
         """
-        return self.daysOld() >= 9
+        return self.daysOld() >= 27
 
     def isPassed(self):
         """
@@ -394,7 +394,7 @@ class Candidate:
         if not self._votesCounted:
             self.countVotes()
 
-        return self._pro >= 5 and (self._pro >= 2 * self._con)
+        return self._pro >= 7 and (self._pro >= 2 * self._con)
 
     def isIgnored(self):
         """Nomination with more than 1 video is not supported. It's manual as of now."""

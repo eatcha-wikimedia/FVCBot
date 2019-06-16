@@ -557,7 +557,7 @@ class Candidate:
     def addToFeaturedList(self, category):
         """
         Will add this page to the list of featured videos.
-        This uses just the base of the category, like 'Music'.
+        This uses just the base of the category, like 'Animated'.
         Should only be called on closed and verified candidates
 
         This is ==STEP 1== of the parking procedure

@@ -169,7 +169,7 @@ class Candidate:
         self._votesCounted = True
 
     def isWithdrawn(self):
-        """Withdrawn nominations should not be counted"""
+        """In a Withdrawn nominations votes are not counted"""
         text = self.page.get(get_redirect=True)
         text = filter_content(text)
         withdrawn = len(re.findall(WithdrawnR, text))
@@ -186,14 +186,10 @@ class Candidate:
 
         self.countVotes()
 
-        # First rule of the ninth day, not required per poll on COM:FVC talk page. ( Less participants )
-        # if self._pro <= 1:
-        #   return True
-
-        # Second rule of the ninth day
+        # First rule of the ninth day
         if self._pro >= 7
             return True
-	# Third rule of the ninth day
+	# Second rule of the ninth day
 	if self._con >= 4:
             return False
 

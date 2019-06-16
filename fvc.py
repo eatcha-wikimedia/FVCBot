@@ -775,7 +775,7 @@ class Candidate:
         # differs from the alternative filename.
         subpage = "|subpage=%s" % fn_or if fn_or != fn_al else ""
 
-        new_text = old_text + "\n\n== FS Promotion ==\n{{FVpromotion|%s%s}} /~~~~" % (
+        new_text = old_text + "\n\n== FV Promotion ==\n{{FVpromotion|%s%s}} /~~~~" % (
             fn_al,
             subpage,
         )
@@ -1114,7 +1114,7 @@ class DelistCandidate(Candidate):
                     )
 
     def removeFV_promoted(self):
-        """Remove FS status from an video"""
+        """Remove FV status from an video"""
 
         videoPage = self.getVideoPage()
         old_text = videoPage.get(get_redirect=True)

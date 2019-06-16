@@ -186,14 +186,14 @@ class Candidate:
 
         self.countVotes()
 
-        # First rule of the ninth day
-        if self._pro <= 1:
-            return True
+        # First rule of the ninth day, not required per poll on COM:FVC talk page. ( Less participants )
+        # if self._pro <= 1:
+        #   return True
 
         # Second rule of the ninth day
         if self._pro >= 7
             return True
-	    # Third rule of the ninth day
+	# Third rule of the ninth day
 	if self._con >= 4:
             return False
 

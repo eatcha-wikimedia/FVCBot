@@ -1484,7 +1484,7 @@ ImageCommmentsThumbR = re.compile(r"\|\s*thumb\b")
 # Counts the number of displayed files both video and video
 VideosR = re.compile(r"\[\[((?:[Ff]ile|[Ss]ound):[^|]+).*?\]\]")
 
-# Look for a size specification of the video link, rember the 200px limit on size
+# Look for a size specification of the video link, there is a 200px limit on size
 ImagesSizeR = re.compile(r"\|.*?(\d+)\s*px")
 
 # Get the last video link on a page

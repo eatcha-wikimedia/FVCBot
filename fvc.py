@@ -1,3 +1,4 @@
+
 # -*- coding: utf-8 -*-
 """
 This script is derived from the source code of fpcBot https://github.com/Zitrax/fpcBot  which was originally written by 
@@ -141,11 +142,10 @@ class Candidate:
         history = page.getVersionHistory(reverseOrder=True, total=1)
         if not history:
             return "Unknown"
-        return "[[User:%s|%s]]" % (history[0][2], history[0][2])
-
-    def creator(self):
-        """Return the link to the user that created the video"""
-        return self.uploader()
+        if link:
+            return "[[User:%s|%s]]" % (history[0][2], history[0][2])
+        else:
+            return history[0][2]
 
     def countVotes(self):
         """
@@ -743,6 +743,7 @@ class Candidate:
         """
         talk_link = "User_talk:%s" % self.nominator(link=False)
         talk_page = pywikibot.Page(G_Site, talk_link)
+		
 
         try:
             old_text = talk_page.get(get_redirect=True)
@@ -786,13 +787,66 @@ class Candidate:
                 % error,
                 color="lightyellow",
             )
+			
+	def notifyUploader(self):
+        """
+        Add a template to the uploaders talk page
+
+        This is ==STEP 6== of the parking procedure
+        """
+        talk_link_uploader = "User_talk:%s" % self.uploader(link=False)
+		talk_page_uploader = pywikibot.Page(G_Site, talk_link_uploader)
+		
+
+        try:
+            old_text = talk_page.get(get_redirect=True)
+        except pywikibot.NoPage:
+            out(
+                "notifyUploader: No such page '%s' but ignoring..." % talk_link,
+                color="lightred",
+            )
+            return
+
+        fn_or = self.fileName(alternative=False)  # Original filename
+        fn_al = self.fileName(alternative=True)  # Alternative filename
+
+        # First check if we are already on the page,
+        # in that case skip. Can happen if the process
+        # have been previously interrupted.
+        if re.search(r"{{FVpromotion_uploader\|%s}}" % wikipattern(fn_or), old_text):
+            out(
+                "Skipping notifyUploader for '%s', page already listed at '%s'."
+                % (self.cleanTitle(), talk_link),
+                color="lightred",
+            )
+            return
+
+        # We add the subpage parameter if the original filename
+        # differs from the alternative filename.
+        subpage = "|subpage=%s" % fn_or if fn_or != fn_al else ""
+
+        new_text = old_text + "\n\n== FV Promotion ==\n{{FVpromotion_uploader|%s%s}} /~~~~" % (
+            fn_al,
+            subpage,
+        )
+
+        try:
+            self.commit(
+                old_text, new_text, talk_page, "FVC promotion of [[%s]]" % fn_al
+            )
+        except pywikibot.LockedPage as error:
+            out(
+                "Page is locked '%s', but ignoring since it's just the user notification."
+                % error,
+                color="lightyellow",
+            )
 
     def moveToLog(self, reason=None):
         """
         Remove this candidate from the current list
         and add it to the log of the current month
 
-        This is ==STEP 6== of the parking procedure
+        This is ==STEP 7== of the parking procedure
         """
 
         why = (" (%s)" % reason) if reason else ""
@@ -860,6 +914,7 @@ class Candidate:
             to the video page (should also handle subpages)
           * Add the video to the 'Commons:Featured_videos/chronological/current_month'
           * Add the template {{FVpromotion|File:XXXXX.webm}} to the Talk Page of the nominator.
+		  * Add the template {{FVpromotion_uploader|File:XXXXX.webm}} to the Talk Page of the uploader.
         3. If featured or not move it from 'Commons:Featured video candidates/candidate list'
            to the log, f.ex. 'Commons:Featured video candidates/Log/August 2009'
         """

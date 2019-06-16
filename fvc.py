@@ -20,15 +20,15 @@ moving the finished nomination to the archive.
 It adds the following commandline arguments:
 
 -test             Perform a testrun against an old log
--close            Close and add result to the nominations
--info             Just print the vote count info about the current nominations
--park             Park closed and verified candidates
 -auto             Do not ask before commiting edits to articles
+-park             Park closed and verified candidates
 -dry              Do not submit any edits, just print them
 -threads          Use threads to speed things up, can't be used in interactive mode
 -fvc              Handle the featured candidates (if neither -fvc or -delist is used all candidates are handled)
+-close            Close and add result to the nominations
 -delist           Handle the delisting candidates (if neither -fvc or -delist is used all candidates are handled)
 -notime           Avoid displaying timestamps in log output
+-info             Just print the vote count info about the current nominations
 -match pattern    Only operate on candidates matching this pattern
 """
 
@@ -108,7 +108,7 @@ class Candidate:
         try:
             self.countVotes()
             out(
-                "%s: S:%02d O:%02d N:%02d D:%02d De:%02d Se:%d Im:%02d W:%s (%s)"
+                "%s: S:%02d O:%02d N:%02d D:%02d De:%02d Se:%d Vid:%02d W:%s (%s)"
                 % (
                     self.cutTitle(),
                     self._pro,

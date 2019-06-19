@@ -187,7 +187,7 @@ class Candidate:
         self.countVotes()
 
         # First rule of the ninth day
-        if self._pro >= 7
+        if self._pro >= 7:
             return True
 	# Second rule of the ninth day
 	if self._con >= 4:

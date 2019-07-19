@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 """
 This script is derived from the source code of fpcBot https://github.com/Zitrax/fpcBot  which was originally written by 
@@ -142,10 +141,11 @@ class Candidate:
         history = page.getVersionHistory(reverseOrder=True, total=1)
         if not history:
             return "Unknown"
-        if link:
-            return "[[User:%s|%s]]" % (history[0][2], history[0][2])
-        else:
-            return history[0][2]
+        return "[[User:%s|%s]]" % (history[0][2], history[0][2])
+
+    def creator(self):
+        """Return the link to the user that created the video"""
+        return self.uploader()
 
     def countVotes(self):
         """
@@ -189,8 +189,8 @@ class Candidate:
         # First rule of the ninth day
         if self._pro >= 7:
             return True
-	# Second rule of the ninth day
-	if self._con >= 4:
+        # Second rule of the ninth day
+        if self._con >= 4:
             return False
 
     def closePage(self):
@@ -540,7 +540,7 @@ class Candidate:
             return self._fileName
 
         self._fileName = re.sub(
-            "(%s.*?)([Ff]ile|[Vv]ideo)" % candPrefix, r"\2", self.page.title()
+            "(%s.*?)([Ff]ile|[Ss]ound)" % candPrefix, r"\2", self.page.title()
         )
 
         if not pywikibot.Page(G_Site, self._fileName).exists():
@@ -716,8 +716,8 @@ class Candidate:
 
         # Find the number of lines in the gallery
         m = re.search(r"(?ms)<gallery>(.*)</gallery>", old_text)
-	if m is None:
-            return None
+        if m is None:
+           return None
         count = m.group(0).count("\n")
 
         # We just need to append to the bottom of the gallery
@@ -745,7 +745,6 @@ class Candidate:
         """
         talk_link = "User_talk:%s" % self.nominator(link=False)
         talk_page = pywikibot.Page(G_Site, talk_link)
-		
 
         try:
             old_text = talk_page.get(get_redirect=True)
@@ -789,66 +788,13 @@ class Candidate:
                 % error,
                 color="lightyellow",
             )
-			
-	def notifyUploader(self):
-        """
-        Add a template to the uploaders talk page
-
-        This is ==STEP 6== of the parking procedure
-        """
-        talk_link_uploader = "User_talk:%s" % self.uploader(link=False)
-		talk_page_uploader = pywikibot.Page(G_Site, talk_link_uploader)
-		
-
-        try:
-            old_text = talk_page.get(get_redirect=True)
-        except pywikibot.NoPage:
-            out(
-                "notifyUploader: No such page '%s' but ignoring..." % talk_link,
-                color="lightred",
-            )
-            return
-
-        fn_or = self.fileName(alternative=False)  # Original filename
-        fn_al = self.fileName(alternative=True)  # Alternative filename
-
-        # First check if we are already on the page,
-        # in that case skip. Can happen if the process
-        # have been previously interrupted.
-        if re.search(r"{{FVpromotion_uploader\|%s}}" % wikipattern(fn_or), old_text):
-            out(
-                "Skipping notifyUploader for '%s', page already listed at '%s'."
-                % (self.cleanTitle(), talk_link),
-                color="lightred",
-            )
-            return
-
-        # We add the subpage parameter if the original filename
-        # differs from the alternative filename.
-        subpage = "|subpage=%s" % fn_or if fn_or != fn_al else ""
-
-        new_text = old_text + "\n\n== FV Promotion ==\n{{FVpromotion_uploader|%s%s}} /~~~~" % (
-            fn_al,
-            subpage,
-        )
-
-        try:
-            self.commit(
-                old_text, new_text, talk_page, "FVC promotion of [[%s]]" % fn_al
-            )
-        except pywikibot.LockedPage as error:
-            out(
-                "Page is locked '%s', but ignoring since it's just the user notification."
-                % error,
-                color="lightyellow",
-            )
 
     def moveToLog(self, reason=None):
         """
         Remove this candidate from the current list
         and add it to the log of the current month
 
-        This is ==STEP 7== of the parking procedure
+        This is ==STEP 6== of the parking procedure
         """
 
         why = (" (%s)" % reason) if reason else ""
@@ -916,7 +862,6 @@ class Candidate:
             to the video page (should also handle subpages)
           * Add the video to the 'Commons:Featured_videos/chronological/current_month'
           * Add the template {{FVpromotion|File:XXXXX.webm}} to the Talk Page of the nominator.
-		  * Add the template {{FVpromotion_uploader|File:XXXXX.webm}} to the Talk Page of the uploader.
         3. If featured or not move it from 'Commons:Featured video candidates/candidate list'
            to the log, f.ex. 'Commons:Featured video candidates/Log/August 2009'
         """
@@ -1145,7 +1090,7 @@ class DelistCandidate(Candidate):
                     old_text = ref.get(get_redirect=True)
                     now = datetime.datetime.utcnow()
                     new_text = re.sub(
-                        r"(([Ff]ile|[Vv]ideo):%s.*)\n"
+                        r"(([Ff]ile|[Ss]ound):%s.*)\n"
                         % wikipattern(self.cleanTitle(keepExtension=True)),
                         r"\1 '''Delisted %d-%02d-%02d (%s-%s)'''\n"
                         % (now.year, now.month, now.day, results[1], results[0]),
@@ -1157,7 +1102,7 @@ class DelistCandidate(Candidate):
                 else:
                     old_text = ref.get(get_redirect=True)
                     new_text = re.sub(
-                        r"(\[\[)?([Ff]ile|[Vv]ideo):%s.*\n"
+                        r"(\[\[)?([Ff]ile|[Ss]ound):%s.*\n"
                         % wikipattern(self.cleanTitle(keepExtension=True)),
                         "",
                         old_text,
@@ -1465,7 +1410,7 @@ keep_templates = (
 # Used to remove the prefix and just print the file names
 # of the candidate titles.
 candPrefix = "Commons:Featured video candidates/"
-PrefixR = re.compile("%s.*?([Ff]ile|[Vv]ideo)?:" % candPrefix)
+PrefixR = re.compile("%s.*?([Ff]ile|[Ss]ound)?:" % candPrefix)
 
 # Looks for result counts, an example of such a line is:
 # '''result:''' 3 support, 2 oppose, 0 neutral => not featured.
@@ -1535,7 +1480,7 @@ FvxR = re.compile(r"{{\s*FVX(\|.*)?}}", re.MULTILINE)
 ImageCommmentsThumbR = re.compile(r"\|\s*thumb\b")
 
 # Counts the number of displayed files both video and video
-VideosR = re.compile(r"\[\[((?:[Ff]ile|[Vv]ideo):[^|]+).*?\]\]")
+VideosR = re.compile(r"\[\[((?:[Ff]ile|[Ss]ound):[^|]+).*?\]\]")
 
 # Look for a size specification of the video link, there is a 200px limit on size
 ImagesSizeR = re.compile(r"\|.*?(\d+)\s*px")
@@ -1567,7 +1512,7 @@ def main(*args):
     global G_MatchPattern
     global G_Site
 
-    # Will sys.exit(-1) if another instance is running
+    Will sys.exit(-1) if another instance is running
     me = singleton.SingleInstance()
 
     FVClist = "Commons:Featured video candidates/candidate_list"
@@ -1702,3 +1647,4 @@ if __name__ == "__main__":
         main()
     finally:
         pywikibot.stopme()
+

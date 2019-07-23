@@ -135,13 +135,16 @@ class Candidate:
         else:
             return history[0][2]
 
-    def uploader(self):
+    def uploader(self, link=True):
         """Return the link to the user that uploaded the nominated video"""
         page = pywikibot.Page(G_Site, self.fileName())
         history = page.getVersionHistory(reverseOrder=True, total=1)
         if not history:
             return "Unknown"
-        return "[[User:%s|%s]]" % (history[0][2], history[0][2])
+        if link:
+            return "[[User:%s|%s]]" % (history[0][2], history[0][2])
+        else:
+            return history[0][2]
 
     def creator(self):
         """Return the link to the user that created the video"""
@@ -789,6 +792,56 @@ class Candidate:
                 color="lightyellow",
             )
 
+    def notifyUploader(self):
+        
+        talk_link = "User_talk:%s" % self.uploader(link=False)
+        talk_page = pywikibot.Page(G_Site, talk_link)
+
+        try:
+            old_text = talk_page.get(get_redirect=True)
+        except pywikibot.NoPage:
+            out(
+                "notifyUploader: No such page '%s' but ignoring..." % talk_link,
+                color="lightred",
+            )
+            return
+
+        fn_or = self.fileName(alternative=False)  # Original filename
+        fn_al = self.fileName(alternative=True)  # Alternative filename
+
+        # First check if we are already on the page,
+        # in that case skip. Can happen if the process
+        # have been previously interrupted.
+        if re.search(r"{{FVpromotion\|%s}}" % wikipattern(fn_or), old_text):
+            out(
+                "Skipping notifyUploader for '%s', page already listed at '%s'."
+                % (self.cleanTitle(), talk_link),
+                color="lightred",
+            )
+            return
+
+        # We add the subpage parameter if the original filename
+        # differs from the alternative filename.
+        subpage = "|subpage=%s" % fn_or if fn_or != fn_al else ""
+
+        new_text = old_text + "\n\n== FV Promotion ==\n{{FVpromotedUploader|%s%s}} /~~~~" % (
+            fn_al,
+            subpage,
+        )
+
+        try:
+            self.commit(
+                old_text, new_text, talk_page, "FVC promotion of [[%s]]" % fn_al
+            )
+        except pywikibot.LockedPage as error:
+            out(
+                "Page is locked '%s', but ignoring since it's just the user notification."
+                % error,
+                color="lightyellow",
+            )
+
+
+
     def moveToLog(self, reason=None):
         """
         Remove this candidate from the current list
@@ -1033,6 +1086,7 @@ class FVCandidate(Candidate):
         self.addFPtags()
         self.addToCurrentMonth()
         self.notifyNominator()
+        self.notifyUploader()
         self.moveToLog(self._proString)
 
 
@@ -1140,10 +1194,10 @@ def wikipattern(s):
     def rep(m):
         if m.group(0) == " " or m.group(0) == "_":
             return "[ _]"
-        elif m.group(0) == "(" or m.group(0) == ")" or m.group(0) == "*":
+        elif m.group(0) == "(" or m.group(0) == ")" or m.group(0) == "*" or m.group(0) == "+" or m.group(0) == "=" or m.group(0) == "?" or m.group(0) == "!" or m.group(0) == "^" or m.group(0) == "-":
             return "\\" + m.group(0)
 
-    return re.sub(r"[ _()*]", rep, s)
+    return re.sub(r"[ _()*+=?!^-]", rep, s)
 
 
 def out(text, newline=True, date=False, color=None):

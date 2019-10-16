@@ -704,7 +704,7 @@ class Candidate:
         """
         monthpage = "Commons:Featured_videos/chronological/current_year/current_month"
         now = datetime.now()
-	monthpage.replace('current_year',now.strftime("%Y"))
+        monthpage.replace('current_year',now.strftime("%Y"))
         monthpage.replace('current_month',now.strftime("%B"))
         page = pywikibot.Page(G_Site, monthpage)
         old_text = page.get(get_redirect=True)

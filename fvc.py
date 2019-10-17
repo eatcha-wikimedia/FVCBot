@@ -37,7 +37,6 @@ import pywikibot, re, datetime, sys, difflib, signal
 # Imports needed for threading
 import threading, time
 from pywikibot import config
-from datetime import datetime
 # Import for single process check
 # dependency can be installed using "pip install tendo" or "easy_install tendo"
 from tendo import singleton
@@ -702,10 +701,7 @@ class Candidate:
         current_year/current_month are replaced by real years and month per os time
         This is ==STEP 4== of the parking procedure
         """
-        monthpage = "Commons:Featured_videos/chronological/current_year/current_month"
-        now = datetime.now()
-        monthpage.replace('current_year',now.strftime("%Y"))
-        monthpage.replace('current_month',now.strftime("%B"))
+        monthpage = "Commons:Featured_videos/chronological/current_month"
         page = pywikibot.Page(G_Site, monthpage)
         old_text = page.get(get_redirect=True)
 

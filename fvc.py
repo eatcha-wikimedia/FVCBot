@@ -659,19 +659,27 @@ class Candidate:
             if params.find("|") != 0:
                 params = "|" + params
             new_ass = "{{FV_promoted%s}}" % params
+            nomuser = self.nominator()
+            upuser = self.uploader()
+            new_nc = "[[Category:Featured videos nominated by %s]]" % nomuser
+            new_uc = "[[Category:Featured videos  by %s]]" % upuser
             new_text = re.sub(AssR, new_ass, old_text)
             if new_text == old_text:
                 out(
-                    "No change in addFPtags, '%s' already featured."
+                    "No change in addFVtags, '%s' already featured."
                     % self.cleanTitle()
                 )
                 return
         else:
             # There is no FV_promoted template so just add it
             end = findEndOfTemplate(old_text, "[Ii]nformation")
+            nomuser = self.nominator(link=False)
+            upuser = self.uploader(link=False)
             new_text = (
                 old_text[:end]
                 + "\n{{FV_promoted|featured=1%s}}\n" % comnom
+                + "\n[[Category:Featured videos nominated by %s]]\n" % nomuser
+                + "\n[[Category:Featured videos by %s]]\n" % upuser
                 + old_text[end:]
             )
             # new_text = re.sub(r'({{\s*[Ii]nformation)',r'{{FV_promoted|featured=1}}\n\1',old_text)
@@ -1713,6 +1721,3 @@ if __name__ == "__main__":
         main()
     finally:
         pywikibot.stopme()
-
-
-

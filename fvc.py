@@ -1,22 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-This script is derived from the source code of fpcBot https://github.com/Zitrax/fpcBot  which was originally written by 
-Daniel78 at commons.wikimedia.org or Zitrax on GitHub. 
-
-FVCBot's latest source can be found at https://github.com/eatcha-wikimedia/FVCBot
-Its user page is at https://commons.wikimedia.org/wiki/User:FVCBot
-
-This bot runs on Toollabs (Eqiad cluster), a Wikimedia Foundation, Inc server Cluster in Virginia, Ashburn, USA
-
-Bot's recent edits can be found at https://commons.wikimedia.org/wiki/Special:Contributions/FVCBot
-
-This bot runs in 3 shifts 5:00, 13:00, 21:00 UTC  , the cronjob looks like the following. 
-0 5,13,21 * * * jsub -once python3 fvc.py -park -close -auto
-
-This bot runs as FVCBot on the commons.wikimedia.org
-It implements vote counting and supports
-moving the finished nomination to the archive.
-
 It adds the following commandline arguments:
 
 -test             Perform a testrun against an old log
@@ -701,7 +684,36 @@ class Candidate:
         current_year/current_month are replaced by real years and month per os time
         This is ==STEP 4== of the parking procedure
         """
-        monthpage = "Commons:Featured_videos/chronological/current_month"
+        why = "adding to fv log"
+        today = datetime.date.today()
+        current_month = Month[today.month]
+        
+        monthpage = "Commons:Featured videos/chronological/%s %s" % (
+            current_month,
+            today.year,
+        )
+        mp_page = pywikibot.Page(G_Site, monthpage)
+
+        # If the page does not exist we just create it ( put does that automatically )
+        try:
+            mp_text = mp_page.get(get_redirect=True)
+        except pywikibot.NoPage:
+            mp_text = ""
+
+        if re.search(wikipattern(self.fileName()), mp_text):
+            out(
+                "Skipping add in moveToMPpage for '%s', page already there"
+                % self.cleanTitle(),
+                color="lightred",
+            )
+        else:
+            new_mp_text = mp_text + "\n{{%s}}" % self.page.title()
+            self.commit(
+                mp_text,
+                new_mp_text,
+                mp_page,
+                "Adding [[%s]]%s" % (self.fileName(), why),
+            )
         page = pywikibot.Page(G_Site, monthpage)
         old_text = page.get(get_redirect=True)
 
@@ -1701,5 +1713,6 @@ if __name__ == "__main__":
         main()
     finally:
         pywikibot.stopme()
+
 
 

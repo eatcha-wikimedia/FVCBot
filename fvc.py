@@ -1,19 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-It adds the following commandline arguments:
-
--test             Perform a testrun against an old log
--auto             Do not ask before commiting edits to articles
--park             Park closed and verified candidates
--dry              Do not submit any edits, just print them
--threads          Use threads to speed things up, can't be used in interactive mode
--fvc              Handle the featured candidates (if neither -fvc or -delist is used all candidates are handled)
--close            Close and add result to the nominations
--delist           Handle the delisting candidates (if neither -fvc or -delist is used all candidates are handled)
--notime           Avoid displaying timestamps in log output
--info             Just print the vote count info about the current nominations
--match pattern    Only operate on candidates matching this pattern
-"""
 
 import pywikibot, re, datetime, sys, difflib, signal
 
@@ -44,7 +29,7 @@ class Candidate:
     """
     This is a video candidate
 
-    This class just serves as base for the DelistCandidate and FVCandidate classes
+    This class just serves as a base for the DelistCandidate and FVCandidate classes
     """
 
     def __init__(
@@ -163,6 +148,10 @@ class Candidate:
     def isFVX(self):
         """Page marked with FVX template"""
         return len(re.findall(FvxR, self.page.get(get_redirect=True)))
+        
+    def isUpcattempR(self):
+        """Page with that has FVcatUploader"""
+        return len(re.findall(UpcattempR, self.page.get(get_redirect=True)))
 
     def rulesOfNinthDay(self):
         """Check if any of the rules of the ninth day can be applied"""
@@ -295,7 +284,7 @@ class Candidate:
     def creationTime(self):
         """
         Find the time that this candidate was created
-        If we can't find the creation date, for example due to
+        If we can't find the creation date, for example, due to
         the page not existing we return now() such that we
         will ignore this nomination as too young.
         """
@@ -392,7 +381,7 @@ class Candidate:
 
         Does not count files that are below a certain threshold
         as they probably are just inline icons and not separate
-        alternative of this candidate.
+        the alternative of this candidate.
         """
         if self._imgCount:
             return self._imgCount
@@ -501,7 +490,7 @@ class Candidate:
         Returns a title string without prefix and extension
         Note that this always operates on the original title and that
         a possible change by the alternative parameter is not considered,
-        but maybe it should be ?
+        but maybe it should be?
         """
         noprefix = re.sub(PrefixR, "", self.page.title())
         if keepExtension:
@@ -513,7 +502,7 @@ class Candidate:
         """
         Return only the filename of this candidate
         This is first based on the title of the page but if that page is not found
-        then the first video link in the page is used.
+        then the first video link on the page is used.
         @param alternative if false disregard any alternative and return the real filename
         """
         # The regexp here also removes any possible crap between the prefix
@@ -537,7 +526,7 @@ class Candidate:
 
     def addToFeaturedList(self, category):
         """
-        Will add this page to the list of featured videos.
+        I will add this page to the list of featured videos.
         This uses just the base of the category, like 'Animated'.
         Should only be called on closed and verified candidates
 
@@ -579,8 +568,7 @@ class Candidate:
 
     def addToCategorizedFeaturedList(self, category):
         """
-        Adds the candidate to the page with categorized featured
-        videos. This is the full category.
+        Adds the candidate to the page with categorized featured videos. This is the full category.
 
         This is ==STEP 2== of the parking procedure
 
@@ -629,8 +617,8 @@ class Candidate:
 
     def addFPtags(self):
         """
-        Adds the the FV_promoted template to a featured
-        videos descripion page.
+        Adds the FV_promoted template to a featured
+        videos description page.
 
         This is ==STEP 3== of the parking procedure
 
@@ -685,6 +673,66 @@ class Candidate:
             # new_text = re.sub(r'({{\s*[Ii]nformation)',r'{{FV_promoted|featured=1}}\n\1',old_text)
 
         self.commit(old_text, new_text, page, "FVC promotion")
+        
+    def makecategoryuploader(self):
+        """
+        this creates uploader category for fv videos
+        """
+        
+        why = "to have a propper count, and update list at  [[Category:Featured videos uploaded by user name]]"
+        upuser = self.uploader(link=False)
+        upcatpage = "Category:Featured videos  by %s" % upuser
+        cat_page = pywikibot.Page(G_Site, upcatpage)
+        try:
+            cat_text = cat_page.get(get_redirect=True)
+        except pywikibot.NoPage:
+            cat_text = ""
+
+        if re.search(r"{{\s*FVcatUploader.*}}", cat_text):
+            out(
+                "Skipping adding template '%s', page present there"
+                % self.uploader(link=False),
+                color="lightred",
+            )
+        else:
+            new_cat_text = cat_text + "\n{{FVcatUploader|username=%s}}\n__HIDDENCAT__" % self.uploader(link=False)
+            self.commit(
+                cat_text,
+                new_cat_text,
+                cat_page,
+                "Creating category for [[User:%s]] %s" % (self.uploader(link=False), why),
+            )
+            
+    def makecategorynominator(self):
+        """
+        this creates nominator category for fv videos
+        """
+        
+        why = "to have a propper count, and update list at [[Featured videos nominated by user name]]   "
+        nomuser = self.nominator(link=False)
+        nomcatpage = "Category:Featured videos nominated by %s" % nomuser
+        cat_page = pywikibot.Page(G_Site, nomcatpage)
+        try:
+            cat_text = cat_page.get(get_redirect=True)
+        except pywikibot.NoPage:
+            cat_text = ""
+
+        if re.search(r"{{\s*FVcatNominator.*}}", cat_text):
+            out(
+                "Skipping adding template '%s', page present there"
+                % self.nominator(link=False),
+                color="lightred",
+            )
+        else:
+            new_cat_text = cat_text + "\n{{FVcatNominator|username=%s}}\n__HIDDENCAT__" % self.nominator(link=False)
+            self.commit(
+                cat_text,
+                new_cat_text,
+                cat_page,
+                "Creating category for [[User:%s]] %s" % (self.nominator(link=False), why),
+            )
+        
+        
 
     def addToCurrentMonth(self):
         """
@@ -722,46 +770,12 @@ class Candidate:
                 mp_page,
                 "Adding [[%s]]%s" % (self.fileName(), why),
             )
-        page = pywikibot.Page(G_Site, monthpage)
-        old_text = page.get(get_redirect=True)
-
-        # First check if we are already on the page,
-        # in that case skip. Can happen if the process
-        # have been previously interrupted.
-        if re.search(wikipattern(self.fileName()), old_text):
-            out(
-                "Skipping addToCurrentMonth for '%s', page already listed."
-                % self.cleanTitle(),
-                color="lightred",
-            )
-            return
-
-        # Find the number of lines in the gallery
-        m = re.search(r"(?ms)<gallery>(.*)</gallery>", old_text)
-        if m is None:
-           return None
-        count = m.group(0).count("\n")
-
-        # We just need to append to the bottom of the gallery
-        # with an added title
-        # TODO: We lack a good way to find the creator, so it is left out at the moment
-        new_text = re.sub(
-            "</gallery>",
-            "%s|%d '''%s''' <br> uploaded by %s, nominated by %s\n</gallery>"
-            % (
-                self.fileName(),
-                count,
-                self.cleanTitle(),
-                self.uploader(),
-                self.nominator(),
-            ),
-            old_text,
-        )
-        self.commit(old_text, new_text, page, "Added [[%s]]" % self.fileName())
+        # obslete teXt/CODE that was below this line and above def notifyNominator(self): 
+        # is now at https://pastebin.com/raw/gg3hb3Ef
 
     def notifyNominator(self):
         """
-        Add a template to the nominators talk page
+        Add a template to the nominator's talk page
 
         This is ==STEP 5== of the parking procedure
         """
@@ -929,7 +943,7 @@ class Candidate:
         1. Check whether the count is verified or not
         2. If verified and featured:
           * Add page to 'Commons:Featured videos, list'
-          * Add to subpage of 'Commons:Featured videos, list'
+          * Add to a subpage of 'Commons:Featured videos, list'
           * Add {{FV_promoted|featured=1}} or just the parameter if the template is already there
             to the video page (should also handle subpages)
           * Add the video to the 'Commons:Featured_videos/chronological/current_month'
@@ -1063,10 +1077,10 @@ class FVCandidate(Candidate):
 
     def getResultString(self):
         if self.videoCount() > 1:
-            return "\n\n{{FVC-results-ready-for-review|support=X|oppose=X|neutral=X|featured=no|category=|alternative=|sig=<small>'''Note: this candidate has several alternatives, thus if featured the alternative parameter needs to be specified.'''</small> /~~~~)}}"
+            return "\n\n{{FVC-results-ready-for-review|support=X|oppose=X|neutral=X|featured=no|category=|alternative=|sig=<small>'''Note: this candidate has several alternatives, thus if featured the alternative parameter needs to be specified.'''</small> /~~~~}}"
         else:
             return (
-                "\n\n{{FVC-results-ready-for-review|support=%d|oppose=%d|neutral=%d|featured=%s|category=|sig=~~~~}}"
+                "\n\n{{FVC-results-ready-for-review|support=%d|oppose=%d|neutral=%d|featured=%s|category=|sig=~~~~"
                 % (self._pro, self._con, self._neu, "yes" if self.isPassed() else "no")
             )
 
@@ -1103,6 +1117,8 @@ class FVCandidate(Candidate):
         self.addToFeaturedList(re.search(r"(.*?)(?:/|$)", fcategory).group(1))
         self.addToCategorizedFeaturedList(fcategory)
         self.addFPtags()
+        self.makecategoryuploader()
+        self.makecategorynominator()
         self.addToCurrentMonth()
         self.notifyNominator()
         self.notifyUploader()
@@ -1129,7 +1145,7 @@ class DelistCandidate(Candidate):
 
     def getResultString(self):
         return (
-            "\n\n{{FVC-delist-results-ready-for-review|delist=%d|keep=%d|neutral=%d|delisted=%s|sig=~~~~}}"
+            "\n\n{{FVC-delist-results-ready-for-review|delist=%d|keep=%d|neutral=%d|delisted=%s|sig=~~~~"
             % (self._pro, self._con, self._neu, "yes" if self.isPassed() else "no")
         )
 
@@ -1197,7 +1213,7 @@ class DelistCandidate(Candidate):
 
         # Then check for the FV_promoted template
         # The replacement string needs to use the octal value for the char '2' to
-        # not confuse python as '\12\2' would obviously not work
+        # does not confuse python as '\12\2' would obviously not work
         new_text = re.sub(
             r"({{FV_promoted\s*\|.*(?:com|featured)\s*=\s*)1(.*?}})",
             r"\1\062\2",
@@ -1208,7 +1224,7 @@ class DelistCandidate(Candidate):
 
 
 def wikipattern(s):
-    """Return a string that can be matched against different way of writing it on wikimedia projects"""
+    """Return a string that can be matched against the different way of writing it on Wikimedia projects"""
 
     def rep(m):
         if m.group(0) == " " or m.group(0) == "_":
@@ -1316,8 +1332,8 @@ def strip_tag(text, tag):
 
 def findEndOfTemplate(text, template):
     """
-    As regexps can't properly deal with nested parantheses this
-    function will manually scan for where a template ends
+    As regexp can't properly deal with nested parentheses this
+    the function will manually scan for where a template ends
     such that we can insert new text after it.
     Will return the position or 0 if not found.
     """
@@ -1373,7 +1389,7 @@ Month = {
 }
 
 
-# List of allowed voting templates, you are encouraged to add templates in diffrent languages
+# List of allowed voting templates, you are encouraged to add templates in different languages
 # They are taken from the page Commons:Polling_templates and some common redirects
 support_templates = (
     "[Ss]upport",
@@ -1525,7 +1541,7 @@ DelistReviewedTemplateR = re.compile(
     r"^.*{{\s*FVC-delist-results-reviewed.*}}.*$\n?", re.MULTILINE
 )
 
-# Is whitespace allowed at the end ?
+# Is whitespace allowed at the end?
 SectionR = re.compile(r"^={1,4}.+={1,4}\s*$", re.MULTILINE)
 # Voting templates
 SupportR = re.compile(
@@ -1569,7 +1585,7 @@ G_Auto = False
 G_Dry = False
 # Use threads
 G_Threads = False
-# Avoid timestamps in output
+# Avoid timestamps in the output
 G_LogNoTime = False
 # Pattern to match
 G_MatchPattern = ""
@@ -1721,3 +1737,4 @@ if __name__ == "__main__":
         main()
     finally:
         pywikibot.stopme()
+

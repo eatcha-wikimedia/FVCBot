@@ -1607,8 +1607,8 @@ def main(*args):
 
     FVClist = "Commons:Featured video candidates/candidate_list"
     delistPage = "Commons:Featured_video_candidates/removal"
-	# This projeckt was dead for decades so may 2019 is the best testlog IMO
-    testLog = "Commons:Featured_video_candidates/Log/May_2019"
+	# test log is Commons:Featured_video_candidates/Test
+    testLog = "Commons:Featured_video_candidates/Test"
 
     worked = False
     delist = False

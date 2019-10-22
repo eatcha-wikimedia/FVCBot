@@ -501,7 +501,7 @@ class Candidate:
     def fileName(self, alternative=True):
         """
         Return only the filename of this candidate
-        This is first based on the title of the page but if that page is not found
+        This is priorly based on the title of the page but if the corresponding video page is not found
         then the first video link on the page is used.
         @param alternative if false disregard any alternative and return the real filename
         """
@@ -514,7 +514,7 @@ class Candidate:
             return self._fileName
 
         self._fileName = re.sub(
-            "(%s.*?)([Ff]ile|[Ss]ound)" % candPrefix, r"\2", self.page.title()
+            "(%s.*?)([Ff]ile|[Vv]ideo)" % candPrefix, r"\2", self.page.title()
         )
 
         if not pywikibot.Page(G_Site, self._fileName).exists():
@@ -1179,7 +1179,7 @@ class DelistCandidate(Candidate):
                     old_text = ref.get(get_redirect=True)
                     now = datetime.datetime.utcnow()
                     new_text = re.sub(
-                        r"(([Ff]ile|[Ss]ound):%s.*)\n"
+                        r"(([Ff]ile|[Vv]ideo):%s.*)\n"
                         % wikipattern(self.cleanTitle(keepExtension=True)),
                         r"\1 '''Delisted %d-%02d-%02d (%s-%s)'''\n"
                         % (now.year, now.month, now.day, results[1], results[0]),
@@ -1191,7 +1191,7 @@ class DelistCandidate(Candidate):
                 else:
                     old_text = ref.get(get_redirect=True)
                     new_text = re.sub(
-                        r"(\[\[)?([Ff]ile|[Ss]ound):%s.*\n"
+                        r"(\[\[)?([Ff]ile|[Vv]video):%s.*\n"
                         % wikipattern(self.cleanTitle(keepExtension=True)),
                         "",
                         old_text,
@@ -1499,7 +1499,7 @@ keep_templates = (
 # Used to remove the prefix and just print the file names
 # of the candidate titles.
 candPrefix = "Commons:Featured video candidates/"
-PrefixR = re.compile("%s.*?([Ff]ile|[Ss]ound)?:" % candPrefix)
+PrefixR = re.compile("%s.*?([Ff]ile|[Vv]ideo)?:" % candPrefix)
 
 # Looks for result counts, an example of such a line is:
 # '''result:''' 3 support, 2 oppose, 0 neutral => not featured.
@@ -1569,7 +1569,7 @@ FvxR = re.compile(r"{{\s*FVX(\|.*)?}}", re.MULTILINE)
 ImageCommmentsThumbR = re.compile(r"\|\s*thumb\b")
 
 # Counts the number of displayed files both video and video
-VideosR = re.compile(r"\[\[((?:[Ff]ile|[Ss]ound):[^|]+).*?\]\]")
+VideosR = re.compile(r"\[\[((?:[Ff]ile|[Vv]ideo):[^|]+).*?\]\]")
 
 # Look for a size specification of the video link, there is a 200px limit on size
 ImagesSizeR = re.compile(r"\|.*?(\d+)\s*px")

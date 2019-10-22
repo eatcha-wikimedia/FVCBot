@@ -1080,7 +1080,7 @@ class FVCandidate(Candidate):
             return "\n\n{{FVC-results-ready-for-review|support=X|oppose=X|neutral=X|featured=no|category=|alternative=|sig=<small>'''Note: this candidate has several alternatives, thus if featured the alternative parameter needs to be specified.'''</small> /~~~~}}"
         else:
             return (
-                "\n\n{{FVC-results-ready-for-review|support=%d|oppose=%d|neutral=%d|featured=%s|category=|sig=~~~~"
+                "\n\n{{FVC-results-ready-for-review|support=%d|oppose=%d|neutral=%d|featured=%s|category=|sig=~~~~}}"
                 % (self._pro, self._con, self._neu, "yes" if self.isPassed() else "no")
             )
 

@@ -997,6 +997,7 @@ class Candidate:
             )
             return
 
+    @classmethod
     def handlePassedCandidate(self, results):
         """Must be implemented by subclass (do the park procedure for passing candidate)"""
         raise NotImplementedException()
@@ -1078,7 +1079,8 @@ class FVCandidate(Candidate):
                 "\n\n{{FVC-results-ready-for-review|support=%d|oppose=%d|neutral=%d|featured=%s|category=|sig=~~~~}}"
                 % (self._pro, self._con, self._neu, "yes" if self.isPassed() else "no")
             )
-
+            
+    @classmethod
     def getCloseCommitComment(self):
         if self.videoCount() > 1:
             return "Closing for review - contains alternatives, needs manual count"
@@ -1138,6 +1140,7 @@ class DelistCandidate(Candidate):
         )
         self._listPageName = "Commons:Featured video candidates/removal"
 
+    @classmethod
     def getResultString(self):
         return (
             "\n\n{{FVC-delist-results-ready-for-review|delist=%d|keep=%d|neutral=%d|delisted=%s|sig=~~~~"
@@ -1595,7 +1598,6 @@ def main(*args):
     global G_LogNoTime
     global G_MatchPattern
     global G_Site
-
 
     # Will sys.exit(-1) if another instance is running
     me = singleton.SingleInstance()

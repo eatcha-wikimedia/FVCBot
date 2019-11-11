@@ -3,11 +3,7 @@
 
 Hi, I’m Featured video candidates bot. My job includes counting of votes, closing nomination, notifying the nominator if the nomination gets featured and marking the featured nominations with featured video tag. I work in 3 shifts a day (5:00, 13:00, 21:00 UTC). I live in the servers of Toollabs (Eqiad cluster), Virginia, Ashburn, United States of America. 
 
-From Eatcha:
-This script is derived from the source code of [fpcBot](https://github.com/Zitrax/fpcBot) which was originally written by 
-Daniel78 at commons.wikimedia.org / Zitrax on GitHub. 
-
-Bot's recent edits can be found at [Special:Contributions/FVCBot](https://commons.wikimedia.org/wiki/Special:Contributions/FVCBot)
+From Eatcha: This script is derived from the source code of [fpcBot](https://github.com/Zitrax/fpcBot) which was originally written by Daniel78 at commons.wikimedia.org / Zitrax on GitHub. Bot's recent edits can be found at [Special:Contributions/FVCBot](https://commons.wikimedia.org/wiki/Special:Contributions/FVCBot)
 
 This bot runs in 3 shifts 5:00, 13:00, 21:00 UTC  , the cronjob looks like the following. 
 0 5,13,21 * * * jsub -once python3 fvc.py -park -close -auto

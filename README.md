@@ -5,7 +5,6 @@ Hi, I’m Featured video candidates bot. My job includes counting of votes, clos
 
 
 From Eatcha:
-
 This script is derived from the source code of fpcBot https://github.com/Zitrax/fpcBot  which was originally written by 
 Daniel78 at commons.wikimedia.org or Zitrax on GitHub. 
 

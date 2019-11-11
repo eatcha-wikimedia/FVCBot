@@ -649,8 +649,6 @@ class Candidate:
             new_ass = "{{FV_promoted%s}}" % params
             nomuser = self.nominator()
             upuser = self.uploader()
-            new_nc = "[[Category:Featured videos nominated by %s]]" % nomuser
-            new_uc = "[[Category:Featured videos  by %s]]" % upuser
             new_text = re.sub(AssR, new_ass, old_text)
             if new_text == old_text:
                 out(
@@ -1077,7 +1075,7 @@ class FVCandidate(Candidate):
 
     def getResultString(self):
         if self.videoCount() > 1:
-            return "\n\n{{FVC-results-ready-for-review|support=X|oppose=X|neutral=X|featured=no|category=|alternative=|sig=<small>'''Note: this candidate has several alternatives, thus if featured the alternative parameter needs to be specified.'''</small> /~~~~}}"
+            return "\n\n{{FVC-results-ready-for-review|support=X|oppose=X|neutral=X|featured=no|category=|alternative=|sig=<small>'''Note: Many alternatives, tuse alternative parameter to select file.'''</small> /~~~~}}"
         else:
             return (
                 "\n\n{{FVC-results-ready-for-review|support=%d|oppose=%d|neutral=%d|featured=%s|category=|sig=~~~~}}"
@@ -1737,4 +1735,3 @@ if __name__ == "__main__":
         main()
     finally:
         pywikibot.stopme()
-

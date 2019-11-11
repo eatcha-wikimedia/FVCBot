@@ -149,9 +149,6 @@ class Candidate:
         """Page marked with FVX template"""
         return len(re.findall(FvxR, self.page.get(get_redirect=True)))
         
-    def isUpcattempR(self):
-        """Page with that has FVcatUploader"""
-        return len(re.findall(UpcattempR, self.page.get(get_redirect=True)))
 
     def rulesOfNinthDay(self):
         """Check if any of the rules of the ninth day can be applied"""
@@ -1411,7 +1408,7 @@ support_templates = (
     "[Ss]for",
     "за",
     "[Ss]tödjer",
-           "เห็นด้วย",
+    "เห็นด้วย",
     "[Dd]estek",
     "[Aa] favore?",
     "[Ss]trong support",
@@ -1445,7 +1442,7 @@ oppose_templates = (
     "[Mm]ot",
     "против",
     "[Ss]tödjer ej",
-           "ไม่เห็นด้วย",
+    "ไม่เห็นด้วย",
     "[Kk]arsi",
     "FPX contested",
     "[Cc]ontra",
@@ -1469,7 +1466,7 @@ neutral_templates = (
     "[Hh]lutlaus",
     "중립",
     "[Nn]eodrach",
-           "เป็นกลาง",
+    "เป็นกลาง",
     "[Vv]n",
     "[Nn]eutrale",
 )
@@ -1486,7 +1483,7 @@ keep_templates = (
     "[Bb]ehold",
     "[Mm]anter",
     "[Bb]ehåll",
-           "เก็บ",
+    "เก็บ",
     "保留",
 )
 
@@ -1611,7 +1608,6 @@ def main(*args):
     worked = False
     delist = False
     fvc = False
-   
 
     # First look for arguments that should be set for all operations
     i = 1

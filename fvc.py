@@ -1225,9 +1225,9 @@ def wikipattern(s):
     """Return a string that can be matched against the different way of writing it on Wikimedia projects"""
 
     def rep(m):
-        if m.group(0) == " " or m.group(0) == "_":
+        if m.group(0) in (" ","_"):
             return "[ _]"
-        elif m.group(0) == "(" or m.group(0) == ")" or m.group(0) == "*" or m.group(0) == "+" or m.group(0) == "=" or m.group(0) == "?" or m.group(0) == "!" or m.group(0) == "^" or m.group(0) == "-":
+        elif m.group(0) in ("(",")","*","+","=","?","!","^","-"):
             return "\\" + m.group(0)
 
     return re.sub(r"[ _()*+=?!^-]", rep, s)

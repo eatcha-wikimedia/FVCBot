@@ -5,19 +5,13 @@ Hi, I’m Featured video candidates bot. My job includes counting of votes, clos
 
 
 From Eatcha:
-This script is derived from the source code of fpcBot https://github.com/Zitrax/fpcBot  which was originally written by 
-Daniel78 at commons.wikimedia.org or Zitrax on GitHub. 
+This script is derived from the source code of [fpcBot](https://github.com/Zitrax/fpcBot) which was originally written by 
+Daniel78 at commons.wikimedia.org / Zitrax on GitHub. 
 
-Its user page is at https://commons.wikimedia.org/wiki/User:FVCBot
-
-
-Bot's recent edits can be found at https://commons.wikimedia.org/wiki/Special:Contributions/FVCBot
+Bot's recent edits can be found at [Special:Contributions/FVCBot](https://commons.wikimedia.org/wiki/Special:Contributions/FVCBot)
 
 This bot runs in 3 shifts 5:00, 13:00, 21:00 UTC  , the cronjob looks like the following. 
 0 5,13,21 * * * jsub -once python3 fvc.py -park -close -auto
-
-
-
 
 ### Emergency bot shutoff button, can be used by wikimedia commons Administrators only
 

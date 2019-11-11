@@ -20,4 +20,3 @@ This bot runs in 3 shifts 5:00, 13:00, 21:00 UTC  , the cronjob looks like the f
 
 [![forthebadge made-with-python](http://ForTheBadge.com/images/badges/made-with-python.svg)](https://www.python.org/)
 [![GPL 3 license](https://img.shields.io/badge/GPL-3-green.svg)](https://github.com/eatcha-wikimedia/FVCBot/blob/master/LICENSE)
-

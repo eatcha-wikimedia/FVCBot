@@ -1,5 +1,3 @@
-
-
 Contributor Covenant Code of Conduct
 
 Our Pledge
@@ -16,7 +14,6 @@ Our Standards
 Examples of behavior that contributes to creating a positive environment
 include:
 
-
     Using welcoming and inclusive language
 
     Being respectful of differing viewpoints and experiences
@@ -29,8 +26,7 @@ include:
 
 
 Examples of unacceptable behavior by participants include:
-
-
+   
     The use of sexualized language or imagery and unwelcome sexual attention or
     advances
 

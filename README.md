@@ -1,4 +1,5 @@
-# FVCBot[![Codacy Badge](https://api.codacy.com/project/badge/Grade/f6844b0fbc5146b7a44413795aada49b)](https://www.codacy.com/manual/eatcha-wikimedia/FVCBot?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=eatcha-wikimedia/FVCBot&amp;utm_campaign=Badge_Grade)
+# FVCBot
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/f6844b0fbc5146b7a44413795aada49b)](https://www.codacy.com/manual/eatcha-wikimedia/FVCBot?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=eatcha-wikimedia/FVCBot&amp;utm_campaign=Badge_Grade)
 
 [![FVCBot - Wikimedia Commons](https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Mini-Robot.png/211px-Mini-Robot.png)](https://commons.wikimedia.org/wiki/User:FVCBot)
 

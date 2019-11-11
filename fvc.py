@@ -1075,7 +1075,7 @@ class FVCandidate(Candidate):
 
     def getResultString(self):
         if self.videoCount() > 1:
-            return "\n\n{{FVC-results-ready-for-review|support=X|oppose=X|neutral=X|featured=no|category=|alternative=|sig=<small>'''Note: Many alternatives, tuse alternative parameter to select file.'''</small> /~~~~}}"
+            return "\n\n{{FVC-results-ready-for-review|support=X|oppose=X|neutral=X|featured=no|category=|alternative=|sig=<small>'''Note: Many alternatives, use alternative parameter to select file.'''</small> /~~~~}}"
         else:
             return (
                 "\n\n{{FVC-results-ready-for-review|support=%d|oppose=%d|neutral=%d|featured=%s|category=|sig=~~~~}}"

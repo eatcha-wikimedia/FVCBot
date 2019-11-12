@@ -694,7 +694,7 @@ class Candidate:
         this creates nominator category for fv videos
         """
         
-        why = "to have a propper count, and update list at [[Featured videos nominated by user name]]   "
+        why = "to have a propper count, and update list at [[Category:Featured videos nominated by user name]]   "
         nomuser = self.nominator(link=False)
         nomcatpage = "Category:Featured videos nominated by %s" % nomuser
         cat_page = pywikibot.Page(G_Site, nomcatpage)

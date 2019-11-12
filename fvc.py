@@ -353,7 +353,7 @@ class Candidate:
     def isPassed(self):
         """
         Find if an video can be featured.
-        Age is checked using isDone() 
+        Age is checked using isDone()
         """
 
         if self.isWithdrawn():
@@ -989,7 +989,6 @@ class Candidate:
             )
             return
 
-    @staticmethod
     def handlePassedCandidate(self, results):
         """Must be implemented by subclass (do the park procedure for passing candidate)"""
         raise NotImplementedException()
@@ -1071,7 +1070,7 @@ class FVCandidate(Candidate):
                 "\n\n{{FVC-results-ready-for-review|support=%d|oppose=%d|neutral=%d|featured=%s|category=|sig=~~~~}}"
                 % (self._pro, self._con, self._neu, "yes" if self.isPassed() else "no")
             )
-            
+
     @staticmethod
     def getCloseCommitComment(self):
         if self.videoCount() > 1:

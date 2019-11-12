@@ -730,7 +730,6 @@ class Candidate:
         why = "adding to fv log"
         today = datetime.date.today()
         current_month = Month[today.month]
-        
         monthpage = "Commons:Featured videos/chronological/%s %s" % (
             current_month,
             today.year,

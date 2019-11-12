@@ -601,7 +601,7 @@ class Candidate:
             # last gallery on the page.
             new_text = re.sub(
                 "(?s)</gallery>(?!.*</gallery>)",
-                "%s|%s\n</gallery>" % (self.fileName(), self.cleanTitle()),
+                "%s\n</gallery>" % (self.fileName()),
                 old_text,
                 1,
             )

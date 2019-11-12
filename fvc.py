@@ -661,8 +661,8 @@ class Candidate:
             new_text = (
                 old_text[:end]
                 + "\n{{FV_promoted|featured=1%s}}\n" % comnom
-                + "\n[[Category:Featured videos nominated by %s]]\n" % nomuser
-                + "\n[[Category:Featured videos by %s]]\n" % upuser
+                + "[[Category:Featured videos nominated by %s]]\n" % nomuser
+                + "[[Category:Featured videos by %s]]" % upuser
                 + old_text[end:]
             )
             # new_text = re.sub(r'({{\s*[Ii]nformation)',r'{{FV_promoted|featured=1}}\n\1',old_text)

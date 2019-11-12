@@ -765,7 +765,7 @@ class Candidate:
                 mp_page,
                 "Adding [[%s]]%s" % (self.fileName(), why),
             )
-        # obslete teXt/CODE that was below this line and above def notifyNominator(self): 
+        # obslete teXt/CODE that was below this line and above def notifyNominator(self):
         # is now at https://pastebin.com/raw/gg3hb3Ef
 
     def notifyNominator(self):
@@ -997,7 +997,7 @@ class Candidate:
             )
             return
 
-    @classmethod
+    @staticmethod
     def handlePassedCandidate(self, results):
         """Must be implemented by subclass (do the park procedure for passing candidate)"""
         raise NotImplementedException()
@@ -1080,7 +1080,7 @@ class FVCandidate(Candidate):
                 % (self._pro, self._con, self._neu, "yes" if self.isPassed() else "no")
             )
             
-    @classmethod
+    @staticmethod
     def getCloseCommitComment(self):
         if self.videoCount() > 1:
             return "Closing for review - contains alternatives, needs manual count"
@@ -1604,7 +1604,6 @@ def main(*args):
 
     FVClist = "Commons:Featured video candidates/candidate_list"
     delistPage = "Commons:Featured_video_candidates/removal"
-	# test log is Commons:Featured_video_candidates/Test
     testLog = "Commons:Featured_video_candidates/Test"
 
     worked = False

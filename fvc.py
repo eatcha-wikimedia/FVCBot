@@ -586,15 +586,6 @@ class Candidate:
             )
             return
 
-        # A few categories are treated specially, the rest is appended to the last gallery
-        if category == "Video-Performance":
-            new_text = re.sub(
-                LastVideoR,
-                r"\1\n[[%s|thumb|300px|left|%s]]"
-                % (self.fileName(), self.cleanTitle()),
-                old_text,
-                1,
-            )
         else:
             # We just need to append to the bottom of the gallery with an added title
             # The regexp uses negative lookahead such that we place the candidate in the

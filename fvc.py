@@ -270,6 +270,7 @@ class Candidate:
 
         return re.sub(r"(===.*)(===)", r"\1%s\2" % status, text, 1)
 
+    # pylint: disable=R0201
     def getResultString(self):
         """Must be implemented by the subclasses (Text to add to closed pages)"""
         raise NotImplementedException()
@@ -586,22 +587,13 @@ class Candidate:
             )
             return
 
-        # A few categories are treated specially, the rest is appended to the last gallery
-        if category == "Video-Performance":
-            new_text = re.sub(
-                LastVideoR,
-                r"\1\n[[%s|thumb|300px|left|%s]]"
-                % (self.fileName(), self.cleanTitle()),
-                old_text,
-                1,
-            )
         else:
             # We just need to append to the bottom of the gallery with an added title
             # The regexp uses negative lookahead such that we place the candidate in the
             # last gallery on the page.
             new_text = re.sub(
                 "(?s)</gallery>(?!.*</gallery>)",
-                "%s|%s\n</gallery>" % (self.fileName(), self.cleanTitle()),
+                "%s\n</gallery>" % (self.fileName()),
                 old_text,
                 1,
             )
@@ -703,7 +695,7 @@ class Candidate:
         this creates nominator category for fv videos
         """
         
-        why = "to have a propper count, and update list at [[Featured videos nominated by user name]]   "
+        why = "to have a propper count, and update list at [[Category:Featured videos nominated by user name]]   "
         nomuser = self.nominator(link=False)
         nomcatpage = "Category:Featured videos nominated by %s" % nomuser
         cat_page = pywikibot.Page(G_Site, nomcatpage)

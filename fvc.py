@@ -1071,7 +1071,6 @@ class FVCandidate(Candidate):
                 % (self._pro, self._con, self._neu, "yes" if self.isPassed() else "no")
             )
 
-    @staticmethod
     def getCloseCommitComment(self):
         if self.videoCount() > 1:
             return "Closing for review - contains alternatives, needs manual count"

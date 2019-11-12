@@ -270,6 +270,7 @@ class Candidate:
 
         return re.sub(r"(===.*)(===)", r"\1%s\2" % status, text, 1)
 
+    # pylint: disable=R0201
     def getResultString(self):
         """Must be implemented by the subclasses (Text to add to closed pages)"""
         raise NotImplementedException()

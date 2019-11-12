@@ -813,7 +813,7 @@ class Candidate:
             )
 
     def notifyUploader(self):
-        
+
         talk_link = "User_talk:%s" % self.uploader(link=False)
         talk_page = pywikibot.Page(G_Site, talk_link)
 

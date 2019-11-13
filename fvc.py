@@ -1,14 +1,20 @@
 # -*- coding: utf-8 -*-
 
-import pywikibot, re, datetime, sys, difflib, signal
+import pywikibot
+import re
+import datetime
+import sys
+import difflib
+import signal
 
 # Imports needed for threading
-import threading, time
+import threading
+import time
 from pywikibot import config
+
 # Import for single process check
 # dependency can be installed using "pip install tendo" or "easy_install tendo"
 from tendo import singleton
-
 
 
 class NotImplementedException(Exception):
@@ -1213,10 +1219,20 @@ def wikipattern(s):
     """Return a string that can be matched against the different way of writing it on Wikimedia projects"""
 
     def rep(m):
-        if m.group(0) in (" ","_"):
-            return "[ _]"
-        elif m.group(0) in ("(",")","*","+","=","?","!","^","-"):
-            return "\\" + m.group(0)
+        if m.group(0) in (' ', '_'):
+            return '[ _]'
+        elif m.group(0) in (
+            '(',
+            ')',
+            '*',
+            '+',
+            '=',
+            '?',
+            '!',
+            '^',
+            '-',
+            ):
+            return '\\' + m.group(0)
 
     return re.sub(r"[ _()*+=?!^-]", rep, s)
 
@@ -1243,14 +1259,18 @@ def findCandidates(page_url, delist):
     for template in templates:
         title = template.title()
         if title.startswith(candPrefix):
+
             # out("Adding '%s' (delist=%s)" % (title,delist))
+
             if delist:
                 candidates.append(DelistCandidate(template))
             else:
                 candidates.append(FVCandidate(template))
         else:
             pass
+
             # out("Skipping '%s'" % title)
+
     return candidates
 
 

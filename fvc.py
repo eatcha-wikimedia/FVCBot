@@ -1259,14 +1259,18 @@ def findCandidates(page_url, delist):
     for template in templates:
         title = template.title()
         if title.startswith(candPrefix):
+
             # out("Adding '%s' (delist=%s)" % (title,delist))
+
             if delist:
                 candidates.append(DelistCandidate(template))
             else:
                 candidates.append(FVCandidate(template))
         else:
             pass
+
             # out("Skipping '%s'" % title)
+
     return candidates
 
 

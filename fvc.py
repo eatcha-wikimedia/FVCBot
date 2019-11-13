@@ -1129,7 +1129,6 @@ class DelistCandidate(Candidate):
         )
         self._listPageName = "Commons:Featured video candidates/removal"
 
-    @classmethod
     def getResultString(self):
         return (
             "\n\n{{FVC-delist-results-ready-for-review|delist=%d|keep=%d|neutral=%d|delisted=%s|sig=~~~~"

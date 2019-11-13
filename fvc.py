@@ -1,14 +1,20 @@
 # -*- coding: utf-8 -*-
 
-import pywikibot, re, datetime, sys, difflib, signal
+import pywikibot
+import re
+import datetime
+import sys
+import difflib
+import signal
 
 # Imports needed for threading
-import threading, time
+import threading
+import time
 from pywikibot import config
+
 # Import for single process check
 # dependency can be installed using "pip install tendo" or "easy_install tendo"
 from tendo import singleton
-
 
 
 class NotImplementedException(Exception):

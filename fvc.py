@@ -870,7 +870,7 @@ class Candidate:
     def getMotdDesc(self):
         link_cand = "Commons:Featured video candidates/%s" % self.fileName()
         cand_page = pywikibot.Page(G_Site, link_cand)
-        cand_page_text = page.get(get_redirect=True)
+        cand_page_text = cand_page.get(get_redirect=True)
         result = re.search('{{Candidatedescription}}(.*)', cand_page_text)
         return result
 

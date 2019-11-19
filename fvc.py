@@ -912,7 +912,7 @@ class Candidate:
                     new_text,
                     page,
                     "Creating MOTD page for [[%s]], %s" % (self.fileName(), why),
-                )    
+                )
 
 
 

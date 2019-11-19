@@ -3,6 +3,7 @@
 import pywikibot
 import re
 import datetime
+from datetime import timedelta
 import sys
 import difflib
 import signal
@@ -864,6 +865,54 @@ class Candidate:
                 % error,
                 color="lightyellow",
             )
+
+
+    def getMotdDesc(self):
+        link_cand = "Commons:Featured video candidates/%s" % self.fileName()
+        cand_page = pywikibot.Page(G_Site, link_cand)
+        cand_page_text = page.get(get_redirect=True)
+        result = re.search('{{Candidatedescription}}(.*)', cand_page_text)
+        return result
+
+
+    def informatdate(self):
+        vare = (datetime.datetime.now()+timedelta(23)).strftime('%Y-%m-%d')
+        return vare
+
+
+    def formatMotdTemplateTag(self):
+        gar = (datetime.datetime.now()+timedelta(23)).strftime('%Y|%m|%d')
+        return gar
+
+
+    def get_motd_page_link(self):
+        return 'Template:Motd/%s' % self.informatdate()
+
+
+    def createMotdPage(self):
+        why = "cuz new [[Commons:Featured videos]] should be MOTD"
+        page = pywikibot.Page(G_Site, self.get_motd_page_link())
+        searchIT = "filename"
+        file = self.fileName()
+        fileWithoutPrefix = str(file)
+        fileWithoutPrefix = fileWithoutPrefix.replace('File:', '')
+        try:
+            text = page.get(get_redirect=True)
+        except pywikibot.NoPage:
+            text = ""
+
+            if re.search(wikipattern(searchIT), text):
+                out(
+                    "Space already occupied, sorry"
+                )
+            else:
+                new_text = text + "{{Motd filename|%s|%s}}" % ( fileWithoutPrefix, self.formatMotdTemplateTag() )
+                self.commit(
+                    text,
+                    new_text,
+                    page,
+                    "Creating MOTD page for [[%s]], %s" % (self.fileName(), why),
+                )    
 
 
 

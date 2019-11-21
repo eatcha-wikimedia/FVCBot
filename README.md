@@ -13,4 +13,4 @@ This bot runs in 3 shifts 5:00, 13:00, 21:00 UTC  , the cronjob looks like the f
 
 ## Emergency bot shutoff button, can be used by wikimedia commons Administrators only
 
-[![FVCBot - Wikimedia Commons](https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Shutdown_button_red_wikimedia.svg/120px-Shutdown_button_red_wikimedia.svg.png)](https://commons.wikimedia.org/w/index.php?title=Special:Blockip&wpTarget=FVCBot&wpExpiry=indefinite&wpAnonOnly=0&wpHardBlock=1&wpAutoBlock=0&wpCreateAccount=0&wpReason=other&wpReason-other=Bot%20malfunctioning:%20)
+[![FVCBot - Wikimedia Commons](https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Shutdown_button_red_wikimedia.svg/80px-Shutdown_button_red_wikimedia.svg.png)](https://commons.wikimedia.org/w/index.php?title=Special:Blockip&wpTarget=FVCBot&wpExpiry=indefinite&wpAnonOnly=0&wpHardBlock=1&wpAutoBlock=0&wpCreateAccount=0&wpReason=other&wpReason-other=Bot%20malfunctioning:%20)

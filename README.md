@@ -3,7 +3,7 @@
 
 [![FVCBot - Wikimedia Commons](https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Mini-Robot.png/211px-Mini-Robot.png)](https://commons.wikimedia.org/wiki/User:FVCBot)
 
-Hi, I’m Featured video candidates bot. My job includes counting of votes, closing nomination, notifying the nominator if the nomination gets featured and marking the featured nominations with featured video tag. I work in 3 shifts a day (5:00, 13:00, 21:00 UTC). I live in the servers of Toollabs (Eqiad cluster), Virginia, Ashburn, United States of America. 
+Hi, I’m [Featured video](https://commons.wikimedia.org/wiki/Commons:Featured_videos) [candidates](https://commons.wikimedia.org/wiki/Commons:Featured_video_candidates) [bot](https://commons.wikimedia.org/wiki/User:FVCBot). My job includes counting of votes, closing nomination, notifying the nominator if the nomination gets featured and marking the featured nominations with featured video tag. I work in 3 shifts a day (5:00, 13:00, 21:00 UTC). I live in the servers of Toollabs (Eqiad cluster), Virginia, Ashburn, United States of America. 
 
 From Eatcha: This script is derived from the source code of [fpcBot](https://github.com/Zitrax/fpcBot) which was originally written by Daniel78 at commons.wikimedia.org / Zitrax on GitHub. Bot's recent edits can be found at [Special:Contributions/FVCBot](https://commons.wikimedia.org/wiki/Special:Contributions/FVCBot)
 

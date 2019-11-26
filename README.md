@@ -11,6 +11,24 @@ From Eatcha: This script is derived from the source code of [fpcBot](https://git
 This bot runs in 3 shifts 5:00, 13:00, 21:00 UTC  , the cronjob looks like the following. 
 0 5,13,21 * * * jsub -once python3 fvc.py -park -close -auto
 
+## Usage
+There are 11 Command-line arguments supported by this python script.
+* test Perform a testrun against an old log
+* close Close and add result to the nominations
+* info Just print the vote count info about the current nominations
+* park Park closed and verified candidates
+* auto Do not ask before commiting edits to articles
+* dry Do not submit any edits, just print them
+* threads Use threads to speed things up, can't be used in interactive mode
+* fpc Handle the featured candidates (if neither -fpc or -delist is used all candidates are handled)
+* delist Handle the delisting candidates (if neither -fpc or -delist is used all candidates are handled)
+* notime Avoid displaying timestamps in log output
+* match pattern Only operate on candidates matching this pattern
+### To close, park candidate automatically we use
+```bash
+
+```
+
 ## Emergency bot shutoff button, can be used by wikimedia commons Administrators only
 
 [![FVCBot - Wikimedia Commons](https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Shutdown_button_red_wikimedia.svg/80px-Shutdown_button_red_wikimedia.svg.png)](https://commons.wikimedia.org/w/index.php?title=Special:Blockip&wpTarget=FVCBot&wpExpiry=indefinite&wpAnonOnly=0&wpHardBlock=1&wpAutoBlock=0&wpCreateAccount=0&wpReason=other&wpReason-other=Bot%20malfunctioning:%20)

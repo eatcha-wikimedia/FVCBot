@@ -24,7 +24,7 @@ There are 11 Command-line arguments supported by this python script.
 * delist -  Handle the delisting candidates (if neither -fpc or -delist is used all candidates are handled)
 * notime -  Avoid displaying timestamps in log output
 * match -  pattern Only operate on candidates matching this pattern
-### To close, park candidate automatically we use
+### To close, park candidate automatically use
 ```bash
 
 ```

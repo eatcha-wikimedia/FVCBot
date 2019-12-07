@@ -165,10 +165,10 @@ class Candidate:
         self.countVotes()
 
         # First rule of the ninth day
-        if self._pro >= 7:
+        if self._pro >= 5:
             return True
         # Second rule of the ninth day
-        if self._con >= 4:
+        if self._con >= 3:
             return False
 
     def closePage(self):
@@ -369,7 +369,7 @@ class Candidate:
         if not self._votesCounted:
             self.countVotes()
 
-        return self._pro >= 7 and (self._pro >= 2 * self._con)
+        return self._pro >= 5 and (self._pro >= 2 * self._con)
 
     def isIgnored(self):
         """Nomination with more than 1 video is not supported. It's manual as of now."""

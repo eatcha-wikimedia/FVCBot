@@ -876,12 +876,12 @@ class Candidate:
 
 
     def informatdate(self):
-        vare = (datetime.datetime.now()+timedelta(23)).strftime('%Y-%m-%d')
+        vare = (datetime.datetime.now()+timedelta(41)).strftime('%Y-%m-%d')
         return vare
 
 
     def formatMotdTemplateTag(self):
-        gar = (datetime.datetime.now()+timedelta(23)).strftime('%Y|%m|%d')
+        gar = (datetime.datetime.now()+timedelta(41)).strftime('%Y|%m|%d')
         return gar
 
 
@@ -899,6 +899,9 @@ class Candidate:
         file = self.fileName()
         fileWithoutPrefix = str(file)
         fileWithoutPrefix = fileWithoutPrefix.replace('File:', '')
+        enMotdDescwhy = "English description added"
+        enMotdDescpage = pywikibot.Page(G_Site, self.get_motd_page_desc())
+        enMotdDescsearchIT = "description"
         try:
             text = page.get(get_redirect=True)
         except pywikibot.NoPage:
@@ -916,29 +919,22 @@ class Candidate:
                     page,
                     "Creating MOTD page for [[%s]], %s" % (self.fileName(), why),
                 )
-
-    def enMotdDesc(self):
-        why = "English description added"
-        page = pywikibot.Page(G_Site, self.get_motd_page_desc())
-        searchIT = "description"
-        try:
-            text = page.get(get_redirect=True)
-        except pywikibot.NoPage:
-            text = ""
-
-            if re.search(wikipattern(searchIT), text):
-                out(
-                    "Alert: Description already there!"
-                )
-            else:
-                new_text = text + "{{Motd description|%s|en|%s}}" % ( self.getMotdDesc(), self.formatMotdTemplateTag() )
-                self.commit(
-                    text,
-                    new_text,
-                    page,
-                    "For MOTD [[%s]], %s" % (self.fileName(), why),
-                )
-        
+                try:
+                    enMotdDesctext = enMotdDescpage.get(get_redirect=True)
+                except pywikibot.NoPage:
+                    enMotdDesctext = ""
+                if re.search(wikipattern(enMotdDescsearchIT), enMotdDesctext):
+                    out(
+                        "Alert: Description already there!"
+                        )
+                else:
+                    enMotdDescnew_text = enMotdDesctext + "{{Motd description|%s|en|%s}}" % ( self.getMotdDesc(), self.formatMotdTemplateTag() )
+                    self.commit(
+                        enMotdDesctext,
+                        enMotdDescnew_text,
+                        enMotdDescpage,
+                        "For MOTD [[%s]], %s" % (self.fileName(), enMotdDescwhy),
+                        )
 
 
 
@@ -1190,7 +1186,6 @@ class FVCandidate(Candidate):
         self.notifyNominator()
         self.notifyUploader()
         self.createMotdPage()
-        self.enMotdDesc()
         self.moveToLog(self._proString)
 
 

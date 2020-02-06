@@ -168,7 +168,7 @@ class Candidate:
         if self._pro >= 5:
             return True
         # Second rule of the ninth day
-        if self._con >= 3:
+        if self._con >= 3 and self._pro < 3:
             return False
 
     def closePage(self):

@@ -7,6 +7,8 @@ from datetime import timedelta
 import sys
 import difflib
 import signal
+import requests
+import json
 
 # Imports needed for threading
 import threading
@@ -111,7 +113,7 @@ class Candidate:
 
     def uploader(self, link=True):
         """Return the link to the user that uploaded the nominated video"""
-        page = pywikibot.Page(G_Site, self.fileName())
+        page = pywikibot.Page(G_Site, self.NewFileNameIfMoved())
         history = page.getVersionHistory(reverseOrder=True, total=1)
         if not history:
             return "Unknown"
@@ -123,6 +125,24 @@ class Candidate:
     def creator(self):
         """Return the link to the user that created the video"""
         return self.uploader()
+
+    def NewFileNameIfMoved(self):
+        file_name = self.fileName()
+        JsonUrl = "https://commons.wikimedia.org/w/api.php?action=parse&page=%s&prop=wikitext&formatversion=2&format=json" % file_name
+        file_page_text = str(json.loads(requests.get(JsonUrl).text))
+        if (file_page_text.find('#REDIRECT') != -1):
+            print("The identifed files is redirected, trying to find the new file name")
+            redirectedRegex = re.compile(r'#REDIRECT\s\[\[(?:File|Image]):(.*)\]\]')
+            matches = redirectedRegex.finditer(file_page_text)
+            for m in matches:
+                NewFileName = (m.group(1))
+                NewFileName = "File:"+NewFileName
+                return NewFileName
+            else:
+                print("File redirected but can't find to what new name")
+                return False
+        else:
+            return file_name
 
     def countVotes(self):
         """
@@ -155,7 +175,6 @@ class Candidate:
     def isFVX(self):
         """Page marked with FVX template"""
         return len(re.findall(FvxR, self.page.get(get_redirect=True)))
-        
 
     def rulesOfNinthDay(self):
         """Check if any of the rules of the ninth day can be applied"""
@@ -547,14 +566,13 @@ class Candidate:
         # First check if we are already on the page,
         # in that case skip. Can happen if the process
         # have been previously interrupted.
-        if re.search(wikipattern(self.fileName()), old_text):
+        if re.search(wikipattern(self.NewFileNameIfMoved()), old_text):
             out(
                 "Skipping addToFeaturedList for '%s', page already listed."
                 % self.cleanTitle(),
                 color="lightred",
             )
             return
-
         # This function first needs to find the main category
         # then inside the gallery tags remove the last line and
         # add this candidate to the top
@@ -568,8 +586,8 @@ class Candidate:
             % wikipattern(category),
             re.MULTILINE,
         )
-        new_text = re.sub(ListPageR, r"\1%s\n\2\3\5" % self.fileName(), old_text)
-        self.commit(old_text, new_text, page, "Added [[%s]]" % self.fileName())
+        new_text = re.sub(ListPageR, r"\1%s\n\2\3\5" % self.NewFileNameIfMoved(), old_text)
+        self.commit(old_text, new_text, page, "Added [[%s]]" % self.NewFileNameIfMoved())
 
     def addToCategorizedFeaturedList(self, category):
         """
@@ -579,6 +597,8 @@ class Candidate:
 
         @param category The categorization category
         """
+        FileAfterCheckingRedirects = self.NewFileNameIfMoved()
+        
         catpage = "Commons:Featured videos/" + category
         page = pywikibot.Page(G_Site, catpage)
         old_text = page.get(get_redirect=True)
@@ -586,7 +606,7 @@ class Candidate:
         # First check if we are already on the page,
         # in that case skip. Can happen if the process
         # have been previously interrupted.
-        if re.search(wikipattern(self.fileName()), old_text):
+        if re.search(wikipattern(FileAfterCheckingRedirects), old_text):
             out(
                 "Skipping addToCategorizedFeaturedList for '%s', page already listed."
                 % self.cleanTitle(),
@@ -600,16 +620,16 @@ class Candidate:
             # last gallery on the page.
             new_text = re.sub(
                 "(?s)</gallery>(?!.*</gallery>)",
-                "%s\n</gallery>" % (self.fileName()),
+                "%s\n</gallery>" % (FileAfterCheckingRedirects),
                 old_text,
                 1,
             )
 
-        self.commit(old_text, new_text, page, "Added [[%s]]" % self.fileName())
+        self.commit(old_text, new_text, page, "Added [[%s]]" % FileAfterCheckingRedirects)
 
     def getVideoPage(self):
         """Get the video page itself"""
-        return pywikibot.Page(G_Site, self.fileName())
+        return pywikibot.Page(G_Site, self.NewFileNameIfMoved())
 
     def addFPtags(self):
         """
@@ -659,20 +679,20 @@ class Candidate:
             upuser = self.uploader(link=False)
             new_text = (
                 old_text[:end]
-                + "\n{{FV_promoted|featured=1%s}}\n" % comnom
-                + "[[Category:Featured videos nominated by %s]]\n" % nomuser
-                + "[[Category:Featured videos by %s]]" % upuser
+                + "\n{{FV_promoted|featured=1%s}}" % comnom
                 + old_text[end:]
+                + "\n[[Category:Featured videos nominated by %s]]\n" % nomuser
+                + "[[Category:Featured videos by %s]]" % upuser
             )
             # new_text = re.sub(r'({{\s*[Ii]nformation)',r'{{FV_promoted|featured=1}}\n\1',old_text)
 
-        self.commit(old_text, new_text, page, "FVC promotion")
-        
+        self.commit(old_text, new_text, page, "FVC promotion with automatic categorization :)")
+
     def makecategoryuploader(self):
         """
         this creates uploader category for fv videos
         """
-        
+
         why = "to have a propper count, and update list at  [[Category:Featured videos uploaded by user name]]"
         upuser = self.uploader(link=False)
         upcatpage = "Category:Featured videos  by %s" % upuser
@@ -749,7 +769,7 @@ class Candidate:
         except pywikibot.NoPage:
             mp_text = ""
 
-        if re.search(wikipattern(self.fileName()), mp_text):
+        if re.search(wikipattern(self.NewFileNameIfMoved()), mp_text):
             out(
                 "Skipping add in moveToMPpage for '%s', page already there"
                 % self.cleanTitle(),
@@ -761,7 +781,7 @@ class Candidate:
                 mp_text,
                 new_mp_text,
                 mp_page,
-                "Adding [[%s]]%s" % (self.fileName(), why),
+                "Adding [[%s]]%s" % (self.NewFileNameIfMoved(), why),
             )
         # obslete teXt/CODE that was below this line and above def notifyNominator(self):
         # is now at https://pastebin.com/raw/gg3hb3Ef
@@ -896,7 +916,7 @@ class Candidate:
         why = "cuz new [[Commons:Featured videos]] should be MOTD"
         page = pywikibot.Page(G_Site, self.get_motd_page_link())
         searchIT = "filename"
-        file = self.fileName()
+        file = self.NewFileNameIfMoved()
         fileWithoutPrefix = str(file)
         fileWithoutPrefix = fileWithoutPrefix.replace('File:', '')
         enMotdDescwhy = "English description added"
@@ -917,7 +937,7 @@ class Candidate:
                     text,
                     new_text,
                     page,
-                    "Creating MOTD page for [[%s]], %s" % (self.fileName(), why),
+                    "Creating MOTD page for [[%s]], %s" % (self.NewFileNameIfMoved(), why),
                 )
                 try:
                     enMotdDesctext = enMotdDescpage.get(get_redirect=True)
@@ -933,9 +953,8 @@ class Candidate:
                         enMotdDesctext,
                         enMotdDescnew_text,
                         enMotdDescpage,
-                        "For MOTD [[%s]], %s" % (self.fileName(), enMotdDescwhy),
+                        "For MOTD [[%s]], %s" % (self.NewFileNameIfMoved(), enMotdDescwhy),
                         )
-
 
 
     def moveToLog(self, reason=None):
@@ -964,7 +983,7 @@ class Candidate:
         except pywikibot.NoPage:
             old_log_text = ""
 
-        if re.search(wikipattern(self.fileName()), old_log_text):
+        if re.search(wikipattern(self.NewFileNameIfMoved()), old_log_text):
             out(
                 "Skipping add in moveToLog for '%s', page already there"
                 % self.cleanTitle(),
@@ -976,7 +995,7 @@ class Candidate:
                 old_log_text,
                 new_log_text,
                 log_page,
-                "Adding [[%s]]%s" % (self.fileName(), why),
+                "Adding [[%s]]%s" % (self.NewFileNameIfMoved(), why),
             )
 
         # Remove from current list
@@ -996,7 +1015,7 @@ class Candidate:
                 old_cand_text,
                 new_cand_text,
                 candidate_page,
-                "Removing [[%s]]%s" % (self.fileName(), why),
+                "Removing [[%s]]%s" % (self.NewFileNameIfMoved(), why),
             )
 
     def park(self):
@@ -1250,7 +1269,7 @@ class DelistCandidate(Candidate):
                         old_text,
                     )
                     self.commit(
-                        old_text, new_text, ref, "Delisted [[%s]]" % self.fileName()
+                        old_text, new_text, ref, "Delisted [[%s]]" % self.NewFileNameIfMoved()
                     )
                 else:
                     old_text = ref.get(get_redirect=True)
@@ -1261,7 +1280,7 @@ class DelistCandidate(Candidate):
                         old_text,
                     )
                     self.commit(
-                        old_text, new_text, ref, "Removing [[%s]]" % self.fileName()
+                        old_text, new_text, ref, "Removing [[%s]]" % self.NewFileNameIfMoved()
                     )
 
     def removeFV_promoted(self):

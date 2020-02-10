@@ -7,8 +7,6 @@ from datetime import timedelta
 import sys
 import difflib
 import signal
-import requests
-import json
 
 # Imports needed for threading
 import threading
@@ -127,21 +125,12 @@ class Candidate:
         return self.uploader()
 
     def NewFileNameIfMoved(self):
-        file_name = self.fileName()
-        JsonUrl = "https://commons.wikimedia.org/w/api.php?action=parse&page=%s&prop=wikitext&formatversion=2&format=json" % file_name
-        file_page_text = str(json.loads(requests.get(JsonUrl).text))
-        if (file_page_text.find('#REDIRECT') != -1):
-            print("The identifed files is redirected, trying to find the new file name")
-            redirectedRegex = re.compile(r'#REDIRECT\s\[\[(?:File|Image]):(.*)\]\]')
-            matches = redirectedRegex.finditer(file_page_text)
-            for m in matches:
-                NewFileName = (m.group(1))
-                NewFileName = "File:"+NewFileName
-                return NewFileName
-            else:
-                print("File redirected but can't find to what new name")
-                return False
+        page = pywikibot.Page(G_Site, self.fileName())
+        if page.isRedirectPage() == True:
+            newfilename= re.sub (r'(?:\[|\]|commons:)', '', str(page.getRedirectTarget()))
+            return newfilename
         else:
+            file_name = self.fileName()
             return file_name
 
     def countVotes(self):

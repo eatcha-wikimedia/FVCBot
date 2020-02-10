@@ -774,6 +774,19 @@ class Candidate:
             )
         # obslete teXt/CODE that was below this line and above def notifyNominator(self):
         # is now at https://pastebin.com/raw/gg3hb3Ef
+    def FindCategoryOfFile(self):
+        text = self.page.get(get_redirect=True)
+        RegexCAT = re.compile(r'(?:.*)Category(?:.*)(?:\s.*)\[\[Commons\:Featured videos\/(.{1,15})\]\]')
+        matches = RegexCAT.finditer(text)
+        for m in matches:
+            Category = (m.group(1))
+        try:
+            Category
+        except:
+            Category = ""
+
+        return Category
+            
 
     def notifyNominator(self):
         """
@@ -1151,8 +1164,8 @@ class FVCandidate(Candidate):
             return "\n\n{{FVC-results-ready-for-review|support=X|oppose=X|neutral=X|featured=no|category=|alternative=|sig=<small>'''Note: Many alternatives, use alternative parameter to select file.'''</small> /~~~~}}"
         else:
             return (
-                "\n\n{{FVC-results-ready-for-review|support=%d|oppose=%d|neutral=%d|featured=%s|category=|sig=~~~~}}"
-                % (self._pro, self._con, self._neu, "yes" if self.isPassed() else "no")
+                "\n\n{{FVC-results-ready-for-review|support=%d|oppose=%d|neutral=%d|featured=%s|category=%s|sig=~~~~}}"
+                % (self._pro, self._con, self._neu, "yes" if self.isPassed() else "no", self.FindCategoryOfFile() )
             )
 
     def getCloseCommitComment(self):

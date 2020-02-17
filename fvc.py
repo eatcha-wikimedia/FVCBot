@@ -1,41 +1,25 @@
 # -*- coding: utf-8 -*-
-"""
-This bot runs as FPCBot on wikimedia commons
-It implements vote counting and supports bot runs as FPCBot on wikimedia commons
-It implements vote counting and supports
-moving the finished nomination to the archive.
 
-Programmed by Daniel78 at Commons.
-
-It adds the following commandline arguments:
-
--test             Perform a testrun against an old log
--close            Close and add result to the nominations
--info             Just print the vote count info about the current nominations
--park             Park closed and verified candidates
--auto             Do not ask before commiting edits to articles
--dry              Do not submit any edits, just print them
--threads          Use threads to speed things up, can't be used in interactive mode
--fpc              Handle the featured candidates (if neither -fpc or -delist is used all candidates are handled)
--delist           Handle the delisting candidates (if neither -fpc or -delist is used all candidates are handled)
--notime           Avoid displaying timestamps in log output
--match pattern    Only operate on candidates matching this pattern
-"""
-
-import pywikibot, re, datetime, sys, difflib, signal
+import pywikibot
+import re
+import datetime
+from datetime import timedelta
+import sys
+import difflib
+import signal
 
 # Imports needed for threading
-import threading, time
+import threading
+import time
 from pywikibot import config
 
 # Import for single process check
-# dependency can be installed using "easy_install tendo"
+# dependency can be installed using "pip install tendo" or "easy_install tendo"
 from tendo import singleton
 
 
 class NotImplementedException(Exception):
-
-    """Not implemented."""
+    """Not implemented"""
 
 
 class ThreadCheckCandidate(threading.Thread):
@@ -50,9 +34,9 @@ class ThreadCheckCandidate(threading.Thread):
 
 class Candidate:
     """
-    This is one picture candidate
+    This is a video candidate
 
-    This class just serves as base for the DelistCandidate and FPCandidate classes
+    This class just serves as a base for the DelistCandidate and FVCandidate classes
     """
 
     def __init__(
@@ -67,7 +51,8 @@ class Candidate:
         CountedR,
         VerifiedR,
     ):
-        """Page is a pywikibot.Page object ."""
+        """page is a pywikibot.Page object"""
+
         # Later perhaps this can be cleaned up by letting the subclasses keep the variables
         self.page = page
         self._pro = 0
@@ -97,7 +82,7 @@ class Candidate:
         try:
             self.countVotes()
             out(
-                "%s: S:%02d O:%02d N:%02d D:%02d De:%02d Se:%d Im:%02d W:%s (%s)"
+                "%s: S:%02d O:%02d N:%02d D:%02d De:%02d Se:%d Vid:%02d W:%s (%s)"
                 % (
                     self.cutTitle(),
                     self._pro,
@@ -106,7 +91,7 @@ class Candidate:
                     self.daysOld(),
                     self.daysSinceLastEdit(),
                     self.sectionCount(),
-                    self.imageCount(),
+                    self.videoCount(),
                     self.isWithdrawn(),
                     self.statusString(),
                 )
@@ -115,7 +100,7 @@ class Candidate:
             out("%s: -- No such page -- " % self.cutTitle(), color="lightred")
 
     def nominator(self, link=True):
-        """Return the link to the user that nominated this candidate."""
+        """Return the link to the user that nominated this candidate"""
         history = self.page.getVersionHistory(reverseOrder=True, total=1)
         if not history:
             return "Unknown"
@@ -125,8 +110,8 @@ class Candidate:
             return history[0][2]
 
     def uploader(self, link=True):
-        """Return the link to the user that uploaded the nominated image."""
-        page = pywikibot.Page(G_Site, self.fileName())
+        """Return the link to the user that uploaded the nominated video"""
+        page = pywikibot.Page(G_Site, self.NewFileNameIfMoved())
         history = page.getVersionHistory(reverseOrder=True, total=1)
         if not history:
             return "Unknown"
@@ -136,25 +121,10 @@ class Candidate:
             return history[0][2]
 
     def creator(self):
-        """Return the link to the user that created the image."""
+        """Return the link to the user that created the video"""
         return self.uploader()
 
-    def FindCategoryOfFile(self):
-        """Try to find category in the nomination page to make closing users life easier."""
-        text = self.page.get(get_redirect=True)
-        RegexCAT = re.compile(r'(?:.*)Category(?:.*)(?:\s.*)\[\[Commons\:Featured[_ ]pictures\/([^,\]]{1,100})')
-        matches = RegexCAT.finditer(text)
-        for m in matches:
-            Category = (m.group(1))
-        try:
-            Category
-        except:
-            Category = ""
-
-        return Category
-
     def NewFileNameIfMoved(self):
-        """Fixed https://github.com/Zitrax/FPCBot/issues/4."""
         page = pywikibot.Page(G_Site, self.fileName())
         if page.isRedirectPage() == True:
             newfilename= re.sub (r'(?:\[|\]|commons:)', '', str(page.getRedirectTarget()))
@@ -165,8 +135,8 @@ class Candidate:
 
     def countVotes(self):
         """
-        Counts all the votes for this nomination
-        and subtracts eventual striked out votes
+        Counts all votes for this nomination
+        and subtracts striked out votes
         """
 
         if self._votesCounted:
@@ -185,30 +155,29 @@ class Candidate:
         self._votesCounted = True
 
     def isWithdrawn(self):
-        """Withdrawn nominations should not be counted."""
+        """In a Withdrawn nominations votes are not counted"""
         text = self.page.get(get_redirect=True)
         text = filter_content(text)
         withdrawn = len(re.findall(WithdrawnR, text))
         return withdrawn > 0
 
-    def isFPX(self):
-        """Page marked with FPX template."""
-        return len(re.findall(FpxR, self.page.get(get_redirect=True)))
+    def isFVX(self):
+        """Page marked with FVX template"""
+        return len(re.findall(FvxR, self.page.get(get_redirect=True)))
 
-    def rulesOfFifthDay(self):
-        """Check if any of the rules of the fifth day can be applied."""
-        if self.daysOld() < 5:
+    def rulesOfNinthDay(self):
+        """Check if any of the rules of the ninth day can be applied"""
+        if self.daysOld() < 9:
             return False
 
         self.countVotes()
 
-        # First rule of the fifth day
-        if self._pro <= 1:
+        # First rule of the ninth day
+        if self._pro >= 5:
             return True
-
-        # Second rule of the fifth day
-        if self._pro >= 10 and self._con == 0:
-            return True
+        # Second rule of the ninth day
+        if self._con > 3 and self._pro <= 3:
+            return False
 
     def closePage(self):
         """
@@ -221,11 +190,11 @@ class Candidate:
             out('"%s" no such page?!' % self.cutTitle())
             return
 
-        if (self.isWithdrawn() or self.isFPX()) and self.imageCount() <= 1:
+        if (self.isWithdrawn() or self.isFVX()) and self.videoCount() <= 1:
             # Will close withdrawn nominations if there are more than one
             # full day since the last edit
 
-            why = "withdrawn" if self.isWithdrawn() else "FPXed"
+            why = "withdrawn" if self.isWithdrawn() else "FVXed"
 
             oldEnough = self.daysSinceLastEdit() > 0
             out(
@@ -243,10 +212,10 @@ class Candidate:
             self.moveToLog(why)
             return True
 
-        # We skip rule of the fifth day if we have several alternatives
-        fifthDay = False if self.imageCount() > 1 else self.rulesOfFifthDay()
+        # We skip rule of the ninth day if we have several alternatives
+        ninthDay = False if self.videoCount() > 1 else self.rulesOfNinthDay()
 
-        if not fifthDay and not self.isDone():
+        if not ninthDay and not self.isDone():
             out('"%s" is still active, ignoring' % self.cutTitle())
             return False
 
@@ -255,7 +224,7 @@ class Candidate:
             out("Warning - %s has no content" % self.page, color="lightred")
             return False
 
-        if re.search(r"{{\s*FPC-closed-ignored.*}}", old_text):
+        if re.search(r"{{\s*FVC-closed-ignored.*}}", old_text):
             out('"%s" is marked as ignored, so ignoring' % self.cutTitle())
             return False
 
@@ -267,7 +236,7 @@ class Candidate:
             out('"%s" already closed and reviewed, ignoring' % self.cutTitle())
             return False
 
-        if self.imageCount() <= 1:
+        if self.videoCount() <= 1:
             self.countVotes()
 
         result = self.getResultString()
@@ -275,7 +244,7 @@ class Candidate:
         new_text = old_text + result
 
         # Add the featured status to the header
-        if self.imageCount() <= 1:
+        if self.videoCount() <= 1:
             new_text = self.fixHeader(new_text)
 
         self.commit(
@@ -283,7 +252,7 @@ class Candidate:
             new_text,
             self.page,
             self.getCloseCommitComment()
-            + (" (FifthDay=%s)" % ("yes" if fifthDay else "no")),
+            + (" (NinthDay=%s)" % ("yes" if ninthDay else "no")),
         )
 
         return True
@@ -316,18 +285,19 @@ class Candidate:
 
         return re.sub(r"(===.*)(===)", r"\1%s\2" % status, text, 1)
 
+    # pylint: disable=R0201
     def getResultString(self):
-        """Must be implemented by the subclasses (Text to add to closed pages)."""
+        """Must be implemented by the subclasses (Text to add to closed pages)"""
         raise NotImplementedException()
 
     def getCloseCommitComment(self):
-        """Must be implemened by the subclasses (Commit comment for closed pages)."""
+        """Must be implemened by the subclasses (Commit comment for closed pages)"""
         raise NotImplementedException()
 
     def creationTime(self):
         """
         Find the time that this candidate was created
-        If we can't find the creation date, for example due to
+        If we can't find the creation date, for example, due to
         the page not existing we return now() such that we
         will ignore this nomination as too young.
         """
@@ -349,7 +319,7 @@ class Candidate:
         return self._creationTime
 
     def statusString(self):
-        """Short status string about the candidate."""
+        """Short status string about the candidate"""
         if self.isIgnored():
             return "Ignored"
         elif self.isWithdrawn():
@@ -360,7 +330,8 @@ class Candidate:
             return self._proString if self.isPassed() else self._conString
 
     def daysOld(self):
-        """Find the number of days this nomination has existed."""
+        """Find the number of days this nomination has existed"""
+
         if self._daysOld != -1:
             return self._daysOld
 
@@ -392,13 +363,12 @@ class Candidate:
         """
         Checks if a nomination can be closed
         """
-        return self.daysOld() >= 9
+        return self.daysOld() >= 27
 
     def isPassed(self):
         """
-        Find if an image can be featured.
-        Does not check the age, it needs to be
-        checked using isDone()
+        Find if an video can be featured.
+        Age is checked using isDone()
         """
 
         if self.isWithdrawn():
@@ -407,24 +377,24 @@ class Candidate:
         if not self._votesCounted:
             self.countVotes()
 
-        return self._pro >= 7 and (self._pro >= 2 * self._con)
+        return self._pro >= 5 and (self._pro >= 2 * self._con)
 
     def isIgnored(self):
-        """Some nominations currently require manual check."""
-        return self.imageCount() > 1
+        """Nomination with more than 1 video is not supported. It's manual as of now."""
+        return self.videoCount() > 1
 
     def sectionCount(self):
-        """Count the number of sections in this candidate."""
+        """Count the number of sections in this candidate"""
         text = self.page.get(get_redirect=True)
         return len(re.findall(SectionR, text))
 
-    def imageCount(self):
+    def videoCount(self):
         """
-        Count the number of images that are displayed
+        Count the number of videos that are displayed
 
-        Does not count images that are below a certain threshold
+        Does not count files that are below a certain threshold
         as they probably are just inline icons and not separate
-        edits of this candidate.
+        the alternative of this candidate.
         """
         if self._imgCount:
             return self._imgCount
@@ -432,20 +402,20 @@ class Candidate:
         text = self.page.get(get_redirect=True)
 
         matches = []
-        for m in re.finditer(ImagesR, text):
+        for m in re.finditer(VideosR, text):
             matches.append(m)
 
         count = len(matches)
 
         if count >= 2:
-            # We have several images, check if they are too small to be counted
+            # If we have several files, check if they are too small to be counted. Some users use images in comments. 200px is the limit
             for img in matches:
 
-                if re.search(ImagesThumbR, img.group(0)):
+                if re.search(ImageCommmentsThumbR, img.group(0)):
                     count -= 1
                 else:
                     s = re.search(ImagesSizeR, img.group(0))
-                    if s and (int(s.group(1)) <= 150):
+                    if s and (int(s.group(1)) <= 200):
                         count -= 1
 
         self._imgCount = count
@@ -477,8 +447,8 @@ class Candidate:
             out("%s: (ignoring, was withdrawn)" % self.cutTitle())
             return
 
-        elif self.isFPX():
-            out("%s: (ignoring, was FPXed)" % self.cutTitle())
+        elif self.isFVX():
+            out("%s: (ignoring, was FVXed)" % self.cutTitle())
             return
 
         elif not res:
@@ -525,7 +495,7 @@ class Candidate:
         )
 
     def cutTitle(self):
-        """Returns a fixed width title."""
+        """Returns a fixed width title"""
         return re.sub(PrefixR, "", self.page.title())[0:50].ljust(50)
 
     def cleanTitle(self, keepExtension=False):
@@ -533,7 +503,7 @@ class Candidate:
         Returns a title string without prefix and extension
         Note that this always operates on the original title and that
         a possible change by the alternative parameter is not considered,
-        but maybe it should be ?
+        but maybe it should be?
         """
         noprefix = re.sub(PrefixR, "", self.page.title())
         if keepExtension:
@@ -544,8 +514,8 @@ class Candidate:
     def fileName(self, alternative=True):
         """
         Return only the filename of this candidate
-        This is first based on the title of the page but if that page is not found
-        then the first image link in the page is used.
+        This is priorly based on the title of the page but if the corresponding video page is not found
+        then the first video link on the page is used.
         @param alternative if false disregard any alternative and return the real filename
         """
         # The regexp here also removes any possible crap between the prefix
@@ -557,11 +527,11 @@ class Candidate:
             return self._fileName
 
         self._fileName = re.sub(
-            "(%s.*?)([Ff]ile|[Ii]mage)" % candPrefix, r"\2", self.page.title()
+            "(%s.*?)([Ff]ile|[Vv]ideo)" % candPrefix, r"\2", self.page.title()
         )
 
         if not pywikibot.Page(G_Site, self._fileName).exists():
-            match = re.search(ImagesR, self.page.get(get_redirect=True))
+            match = re.search(VideosR, self.page.get(get_redirect=True))
             if match:
                 self._fileName = match.group(1)
 
@@ -569,8 +539,8 @@ class Candidate:
 
     def addToFeaturedList(self, category):
         """
-        Will add this page to the list of featured images.
-        This uses just the base of the category, like 'Animals'.
+        I will add this page to the list of featured videos.
+        This uses just the base of the category, like 'Animated'.
         Should only be called on closed and verified candidates
 
         This is ==STEP 1== of the parking procedure
@@ -578,21 +548,20 @@ class Candidate:
         @param category The categorization category
         """
 
-        listpage = "Commons:Featured pictures, list"
+        listpage = "Commons:Featured videos, list"
         page = pywikibot.Page(G_Site, listpage)
         old_text = page.get(get_redirect=True)
 
         # First check if we are already on the page,
         # in that case skip. Can happen if the process
         # have been previously interrupted.
-        if re.search(wikipattern(self.fileName()), old_text):
+        if re.search(wikipattern(self.NewFileNameIfMoved()), old_text):
             out(
                 "Skipping addToFeaturedList for '%s', page already listed."
                 % self.cleanTitle(),
                 color="lightred",
             )
             return
-
         # This function first needs to find the main category
         # then inside the gallery tags remove the last line and
         # add this candidate to the top
@@ -606,26 +575,27 @@ class Candidate:
             % wikipattern(category),
             re.MULTILINE,
         )
-        new_text = re.sub(ListPageR, r"\1%s\n\2\3\5" % self.fileName(), old_text)
-        self.commit(old_text, new_text, page, "Added [[%s]]" % self.fileName())
+        new_text = re.sub(ListPageR, r"\1%s\n\2\3\5" % self.NewFileNameIfMoved(), old_text)
+        self.commit(old_text, new_text, page, "Added [[%s]]" % self.NewFileNameIfMoved())
 
     def addToCategorizedFeaturedList(self, category):
         """
-        Adds the candidate to the page with categorized featured
-        pictures. This is the full category.
+        Adds the candidate to the page with categorized featured videos. This is the full category.
 
         This is ==STEP 2== of the parking procedure
 
         @param category The categorization category
         """
-        catpage = "Commons:Featured pictures/" + category
+        FileAfterCheckingRedirects = self.NewFileNameIfMoved()
+        
+        catpage = "Commons:Featured videos/" + category
         page = pywikibot.Page(G_Site, catpage)
         old_text = page.get(get_redirect=True)
 
         # First check if we are already on the page,
         # in that case skip. Can happen if the process
         # have been previously interrupted.
-        if re.search(wikipattern(self.fileName()), old_text):
+        if re.search(wikipattern(FileAfterCheckingRedirects), old_text):
             out(
                 "Skipping addToCategorizedFeaturedList for '%s', page already listed."
                 % self.cleanTitle(),
@@ -633,47 +603,35 @@ class Candidate:
             )
             return
 
-        # A few categories are treated specially, the rest is appended to the last gallery
-        if category == "Places/Panoramas":
-            new_text = re.sub(
-                LastImageR,
-                r"\1\n[[%s|thumb|627px|left|%s]]"
-                % (self.fileName(), self.cleanTitle()),
-                old_text,
-                1,
-            )
         else:
             # We just need to append to the bottom of the gallery with an added title
             # The regexp uses negative lookahead such that we place the candidate in the
             # last gallery on the page.
             new_text = re.sub(
                 "(?s)</gallery>(?!.*</gallery>)",
-                "%s|%s\n</gallery>" % (self.fileName(), self.cleanTitle()),
+                "%s\n</gallery>" % (FileAfterCheckingRedirects),
                 old_text,
                 1,
             )
 
-        self.commit(old_text, new_text, page, "Added [[%s]]" % self.fileName())
+        self.commit(old_text, new_text, page, "Added [[%s]]" % FileAfterCheckingRedirects)
 
-    def getImagePage(self):
-        """Get the image page itself."""
-        return pywikibot.Page(G_Site, self.fileName())
+    def getVideoPage(self):
+        """Get the video page itself"""
+        return pywikibot.Page(G_Site, self.NewFileNameIfMoved())
 
-    def addAssessments(self):
+    def addFPtags(self):
         """
-        Adds the the assessments template to a featured
-        pictures descripion page.
+        Adds the FV_promoted template to a featured
+        videos description page.
 
         This is ==STEP 3== of the parking procedure
-        NewFileNameIfMoved checks if file is moved, if
-        moved returns the target name else returns Original
-        fileName
 
         """
-        page = pywikibot.Page(G_Site, self.NewFileNameIfMoved())
+        page = self.getVideoPage()
         old_text = page.get(get_redirect=True)
 
-        AssR = re.compile(r"{{\s*[Aa]ssessments\s*\|(.*)}}")
+        AssR = re.compile(r"{{\s*FV_promoted\s*\|(.*)}}")
 
         fn_or = self.fileName(alternative=False)  # Original filename
         fn_al = self.fileName(alternative=True)  # Alternative filename
@@ -681,7 +639,7 @@ class Candidate:
         # differs from the alternative filename.
         comnom = "|com-nom=%s" % fn_or.replace("File:", "") if fn_or != fn_al else ""
 
-        # First check if there already is an assessments template on the page
+        # First check if there already is an FV_promoted template on the page
         params = re.search(AssR, old_text)
         if params:
             # Make sure to remove any existing com/features or subpage params
@@ -693,74 +651,146 @@ class Candidate:
             params += comnom
             if params.find("|") != 0:
                 params = "|" + params
-            new_ass = "{{Assessments%s}}" % params
+            new_ass = "{{FV_promoted%s}}" % params
+            nomuser = self.nominator()
+            upuser = self.uploader()
             new_text = re.sub(AssR, new_ass, old_text)
             if new_text == old_text:
                 out(
-                    "No change in addAssessments, '%s' already featured."
+                    "No change in addFVtags, '%s' already featured."
                     % self.cleanTitle()
                 )
                 return
         else:
-            # There is no assessments template so just add it
+            # There is no FV_promoted template so just add it
             end = findEndOfTemplate(old_text, "[Ii]nformation")
+            nomuser = self.nominator(link=False)
+            upuser = self.uploader(link=False)
             new_text = (
                 old_text[:end]
-                + "\n{{Assessments|featured=1%s}}\n" % comnom
+                + "\n{{FV_promoted|featured=1%s}}" % comnom
                 + old_text[end:]
+                + "\n[[Category:Featured videos nominated by %s]]\n" % nomuser
+                + "[[Category:Featured videos by %s]]" % upuser
             )
-            # new_text = re.sub(r'({{\s*[Ii]nformation)',r'{{Assessments|featured=1}}\n\1',old_text)
+            # new_text = re.sub(r'({{\s*[Ii]nformation)',r'{{FV_promoted|featured=1}}\n\1',old_text)
 
-        self.commit(old_text, new_text, page, "FPC promotion")
+        self.commit(old_text, new_text, page, "FVC promotion with automatic categorization :)")
+
+    def makecategoryuploader(self):
+        """
+        this creates uploader category for fv videos
+        """
+
+        why = "to have a propper count, and update list at  [[Category:Featured videos uploaded by user name]]"
+        upuser = self.uploader(link=False)
+        upcatpage = "Category:Featured videos  by %s" % upuser
+        cat_page = pywikibot.Page(G_Site, upcatpage)
+        try:
+            cat_text = cat_page.get(get_redirect=True)
+        except pywikibot.NoPage:
+            cat_text = ""
+
+        if re.search(r"{{\s*FVcatUploader.*}}", cat_text):
+            out(
+                "Skipping adding template '%s', page present there"
+                % self.uploader(link=False),
+                color="lightred",
+            )
+        else:
+            new_cat_text = cat_text + "\n{{FVcatUploader|username=%s}}\n__HIDDENCAT__" % self.uploader(link=False)
+            self.commit(
+                cat_text,
+                new_cat_text,
+                cat_page,
+                "Creating category for [[User:%s]] %s" % (self.uploader(link=False), why),
+            )
+            
+    def makecategorynominator(self):
+        """
+        this creates nominator category for fv videos
+        """
+        
+        why = "to have a propper count, and update list at [[Category:Featured videos nominated by user name]]   "
+        nomuser = self.nominator(link=False)
+        nomcatpage = "Category:Featured videos nominated by %s" % nomuser
+        cat_page = pywikibot.Page(G_Site, nomcatpage)
+        try:
+            cat_text = cat_page.get(get_redirect=True)
+        except pywikibot.NoPage:
+            cat_text = ""
+
+        if re.search(r"{{\s*FVcatNominator.*}}", cat_text):
+            out(
+                "Skipping adding template '%s', page present there"
+                % self.nominator(link=False),
+                color="lightred",
+            )
+        else:
+            new_cat_text = cat_text + "\n{{FVcatNominator|username=%s}}\n__HIDDENCAT__" % self.nominator(link=False)
+            self.commit(
+                cat_text,
+                new_cat_text,
+                cat_page,
+                "Creating category for [[User:%s]] %s" % (self.nominator(link=False), why),
+            )
+        
+        
 
     def addToCurrentMonth(self):
         """
-        Adds the candidate to the list of featured picture this month
-
+        Adds the candidate to the list of featured video this month
+        current_year/current_month are replaced by real years and month per os time
         This is ==STEP 4== of the parking procedure
         """
-        monthpage = "Commons:Featured_pictures/chronological/%s %s" % (current_month, today.year,)
-        page = pywikibot.Page(G_Site, monthpage)
-        old_text = page.get(get_redirect=True)
+        why = "adding to fv log"
+        today = datetime.date.today()
+        current_month = Month[today.month]
+        monthpage = "Commons:Featured videos/chronological/%s %s" % (
+            current_month,
+            today.year,
+        )
+        mp_page = pywikibot.Page(G_Site, monthpage)
 
-        # First check if we are already on the page,
-        # in that case skip. Can happen if the process
-        # have been previously interrupted.
-        if re.search(wikipattern(self.fileName()), old_text):
+        # If the page does not exist we just create it ( put does that automatically )
+        try:
+            mp_text = mp_page.get(get_redirect=True)
+        except pywikibot.NoPage:
+            mp_text = ""
+
+        if re.search(wikipattern(self.NewFileNameIfMoved()), mp_text):
             out(
-                "Skipping addToCurrentMonth for '%s', page already listed."
+                "Skipping add in moveToMPpage for '%s', page already there"
                 % self.cleanTitle(),
                 color="lightred",
             )
-            return
+        else:
+            new_mp_text = mp_text + "\n{{%s}}" % self.page.title()
+            self.commit(
+                mp_text,
+                new_mp_text,
+                mp_page,
+                "Adding [[%s]]%s" % (self.NewFileNameIfMoved(), why),
+            )
+        # obslete teXt/CODE that was below this line and above def notifyNominator(self):
+        # is now at https://pastebin.com/raw/gg3hb3Ef
+    def FindCategoryOfFile(self):
+        text = self.page.get(get_redirect=True)
+        RegexCAT = re.compile(r'(?:.*)Category(?:.*)(?:\s.*)\[\[Commons\:Featured videos\/(.{1,15})\]\]')
+        matches = RegexCAT.finditer(text)
+        for m in matches:
+            Category = (m.group(1))
+        try:
+            Category
+        except:
+            Category = ""
 
-        # Find the number of lines in the gallery
-        m = re.search(r"(?ms)<gallery>(.*)</gallery>", old_text)
-        count = m.group(0).count("\n")
-
-        # We just need to append to the bottom of the gallery
-        # with an added title
-        # TODO: We lack a good way to find the creator, so it is left out at the moment
-        new_text = re.sub(
-            "</gallery>",
-            "%s|%d '''%s''' <br> uploaded by %s, nominated by %s, Stat: {{s|%s}} , {{o|%s}} and {{n|%s}} \n</gallery>"
-            % (
-                self.fileName(),
-                count,
-                self.cleanTitle(),
-                self.uploader(),
-                self.nominator(),
-                self._pro,
-                self._con,
-                self._neu,
-            ),
-            old_text,
-        )
-        self.commit(old_text, new_text, page, "Added [[%s]]" % self.fileName())
+        return Category
+            
 
     def notifyNominator(self):
         """
-        Add a template to the nominators talk page
+        Add a template to the nominator's talk page
 
         This is ==STEP 5== of the parking procedure
         """
@@ -782,7 +812,7 @@ class Candidate:
         # First check if we are already on the page,
         # in that case skip. Can happen if the process
         # have been previously interrupted.
-        if re.search(r"{{FPpromotion\|%s}}" % wikipattern(fn_or), old_text):
+        if re.search(r"{{FVpromotion\|%s}}" % wikipattern(fn_or), old_text):
             out(
                 "Skipping notifyNominator for '%s', page already listed at '%s'."
                 % (self.cleanTitle(), talk_link),
@@ -794,14 +824,14 @@ class Candidate:
         # differs from the alternative filename.
         subpage = "|subpage=%s" % fn_or if fn_or != fn_al else ""
 
-        new_text = old_text + "\n\n== FP Promotion ==\n{{FPpromotion|%s%s}} /~~~~" % (
+        new_text = old_text + "\n\n== FV Promotion ==\n{{FVpromotion|%s%s}} /~~~~" % (
             fn_al,
             subpage,
         )
 
         try:
             self.commit(
-                old_text, new_text, talk_page, "FPC promotion of [[%s]]" % fn_al
+                old_text, new_text, talk_page, "FVC promotion of [[%s]]" % fn_al
             )
         except pywikibot.LockedPage as error:
             out(
@@ -811,11 +841,7 @@ class Candidate:
             )
 
     def notifyUploader(self):
-        """
-        Add a template to the uploaders talk page
 
-        This is ==STEP 6== of the parking procedure
-        """
         talk_link = "User_talk:%s" % self.uploader(link=False)
         talk_page = pywikibot.Page(G_Site, talk_link)
 
@@ -834,7 +860,7 @@ class Candidate:
         # First check if we are already on the page,
         # in that case skip. Can happen if the process
         # have been previously interrupted.
-        if re.search(r"{{FPpromotion\|%s}}" % wikipattern(fn_or), old_text):
+        if re.search(r"{{FVpromotion\|%s}}" % wikipattern(fn_or), old_text):
             out(
                 "Skipping notifyUploader for '%s', page already listed at '%s'."
                 % (self.cleanTitle(), talk_link),
@@ -846,14 +872,14 @@ class Candidate:
         # differs from the alternative filename.
         subpage = "|subpage=%s" % fn_or if fn_or != fn_al else ""
 
-        new_text = old_text + "\n\n== FP Promotion ==\n{{FPpromotedUploader|%s%s}} /~~~~" % (
+        new_text = old_text + "\n\n== FV Promotion ==\n{{FVpromotedUploader|%s%s}} /~~~~" % (
             fn_al,
             subpage,
         )
 
         try:
             self.commit(
-                old_text, new_text, talk_page, "FPC promotion of [[%s]]" % fn_al
+                old_text, new_text, talk_page, "FVC promotion of [[%s]]" % fn_al
             )
         except pywikibot.LockedPage as error:
             out(
@@ -861,12 +887,84 @@ class Candidate:
                 % error,
                 color="lightyellow",
             )
+
+
+    def getMotdDesc(self):
+        link_cand = "Commons:Featured video candidates/%s" % self.fileName()
+        cand_page = pywikibot.Page(G_Site, link_cand)
+        cand_page_text = cand_page.get(get_redirect=True)
+        result = re.search('{{Candidatedescription}}(.*)', cand_page_text)
+        return result.group(1)
+
+
+    def informatdate(self):
+        vare = (datetime.datetime.now()+timedelta(41)).strftime('%Y-%m-%d')
+        return vare
+
+
+    def formatMotdTemplateTag(self):
+        gar = (datetime.datetime.now()+timedelta(41)).strftime('%Y|%m|%d')
+        return gar
+
+
+    def get_motd_page_link(self):
+        return 'Template:Motd/%s' % self.informatdate()
+
+    def get_motd_page_desc(self):
+        return 'Template:Motd/%s_(en)' % self.informatdate()
+
+
+    def createMotdPage(self):
+        why = "cuz new [[Commons:Featured videos]] should be MOTD"
+        page = pywikibot.Page(G_Site, self.get_motd_page_link())
+        searchIT = "filename"
+        file = self.NewFileNameIfMoved()
+        fileWithoutPrefix = str(file)
+        fileWithoutPrefix = fileWithoutPrefix.replace('File:', '')
+        enMotdDescwhy = "English description added"
+        enMotdDescpage = pywikibot.Page(G_Site, self.get_motd_page_desc())
+        enMotdDescsearchIT = "description"
+        try:
+            text = page.get(get_redirect=True)
+        except pywikibot.NoPage:
+            text = ""
+
+            if re.search(wikipattern(searchIT), text):
+                out(
+                    "Space already occupied, sorry"
+                )
+            else:
+                new_text = text + "{{Motd filename|%s|%s}}" % ( fileWithoutPrefix, self.formatMotdTemplateTag() )
+                self.commit(
+                    text,
+                    new_text,
+                    page,
+                    "Creating MOTD page for [[%s]], %s" % (self.NewFileNameIfMoved(), why),
+                )
+                try:
+                    enMotdDesctext = enMotdDescpage.get(get_redirect=True)
+                except pywikibot.NoPage:
+                    enMotdDesctext = ""
+                if re.search(wikipattern(enMotdDescsearchIT), enMotdDesctext):
+                    out(
+                        "Alert: Description already there!"
+                        )
+                else:
+                    enMotdDescnew_text = enMotdDesctext + "{{Motd description|%s|en|%s}}" % ( self.getMotdDesc(), self.formatMotdTemplateTag() )
+                    self.commit(
+                        enMotdDesctext,
+                        enMotdDescnew_text,
+                        enMotdDescpage,
+                        "For MOTD [[%s]], %s" % (self.NewFileNameIfMoved(), enMotdDescwhy),
+                        )
+
+
     def moveToLog(self, reason=None):
         """
         Remove this candidate from the current list
         and add it to the log of the current month
 
-        This is ==STEP 7== of the parking procedure
+        This is ==STEP 6== of the parking procedure
         """
 
         why = (" (%s)" % reason) if reason else ""
@@ -875,7 +973,7 @@ class Candidate:
         # (Note FIXME, we must probably create this page if it does not exist)
         today = datetime.date.today()
         current_month = Month[today.month]
-        log_link = "Commons:Featured picture candidates/Log/%s %s" % (
+        log_link = "Commons:Featured video candidates/Log/%s %s" % (
             current_month,
             today.year,
         )
@@ -887,7 +985,7 @@ class Candidate:
         except pywikibot.NoPage:
             old_log_text = ""
 
-        if re.search(wikipattern(self.fileName()), old_log_text):
+        if re.search(wikipattern(self.NewFileNameIfMoved()), old_log_text):
             out(
                 "Skipping add in moveToLog for '%s', page already there"
                 % self.cleanTitle(),
@@ -899,7 +997,7 @@ class Candidate:
                 old_log_text,
                 new_log_text,
                 log_page,
-                "Adding [[%s]]%s" % (self.fileName(), why),
+                "Adding [[%s]]%s" % (self.NewFileNameIfMoved(), why),
             )
 
         # Remove from current list
@@ -919,7 +1017,7 @@ class Candidate:
                 old_cand_text,
                 new_cand_text,
                 candidate_page,
-                "Removing [[%s]]%s" % (self.fileName(), why),
+                "Removing [[%s]]%s" % (self.NewFileNameIfMoved(), why),
             )
 
     def park(self):
@@ -928,17 +1026,17 @@ class Candidate:
 
         1. Check whether the count is verified or not
         2. If verified and featured:
-          * Add page to 'Commons:Featured pictures, list'
-          * Add to subpage of 'Commons:Featured pictures, list'
-          * Add {{Assessments|featured=1}} or just the parameter if the template is already there
-            to the picture page (should also handle subpages)
-          * Add the picture to the 'Commons:Featured_pictures/chronological/current_month'
-          * Add the template {{FPpromotion|File:XXXXX.jpg}} to the Talk Page of the nominator.
-        3. If featured or not move it from 'Commons:Featured picture candidates/candidate list'
-           to the log, f.ex. 'Commons:Featured picture candidates/Log/August 2009'
+          * Add page to 'Commons:Featured videos, list'
+          * Add to a subpage of 'Commons:Featured videos, list'
+          * Add {{FV_promoted|featured=1}} or just the parameter if the template is already there
+            to the video page (should also handle subpages)
+          * Add the video to the 'Commons:Featured_videos/chronological/current_month'
+          * Add the template {{FVpromotion|File:XXXXX.webm}} to the Talk Page of the nominator.
+        3. If featured or not move it from 'Commons:Featured video candidates/candidate list'
+           to the log, f.ex. 'Commons:Featured video candidates/Log/August 2009'
         """
 
-        # First make a check that the page actually exist:
+        # Making sure that the page actually exist:
         if not self.page.exists():
             out("%s: (no such page?!)" % self.cutTitle())
             return
@@ -959,13 +1057,13 @@ class Candidate:
             out("%s: (ignoring, was withdrawn)" % self.cutTitle())
             return
 
-        if self.isFPX():
-            out("%s: (ignoring, was FPXed)" % self.cutTitle())
+        if self.isFVX():
+            out("%s: (ignoring, was FVXed)" % self.cutTitle())
             return
 
-        # Check if the image page exist, if not we ignore this candidate
+        # Check if the video file page exist, if not we ignore the candidate
         if not pywikibot.Page(G_Site, self.fileName()).exists():
-            out("%s: (WARNING: ignoring, can't find image page)" % self.cutTitle())
+            out("%s: (WARNING: ignoring, can't find video page)" % self.cutTitle())
             return
 
         # Ok we should now have a candidate with verified results that we can park
@@ -989,7 +1087,7 @@ class Candidate:
             return
 
     def handlePassedCandidate(self, results):
-        """Must be implemented by subclass (do the park procedure for passing candidate)."""
+        """Must be implemented by subclass (do the park procedure for passing candidate)"""
         raise NotImplementedException()
 
     @staticmethod
@@ -1043,12 +1141,10 @@ class Candidate:
             out("Changes to '%s' ignored" % page.title())
 
 
-class FPCandidate(Candidate):
-
-    """A candidate up for promotion."""
+class FVCandidate(Candidate):
+    """A candidate up for promotion"""
 
     def __init__(self, page):
-        """Constructor."""
         Candidate.__init__(
             self,
             page,
@@ -1061,19 +1157,19 @@ class FPCandidate(Candidate):
             CountedTemplateR,
             VerifiedResultR,
         )
-        self._listPageName = "Commons:Featured picture candidates/candidate list"
+        self._listPageName = "Commons:Featured video candidates/candidate list"
 
     def getResultString(self):
-        if self.imageCount() > 1:
-            return "\n\n{{FPC-results-ready-for-review|support=X|oppose=X|neutral=X|featured=no|category=|alternative=|sig=<small>'''Note: this candidate has several alternatives, thus if featured the alternative parameter needs to be specified.'''</small> /~~~~)}}"
+        if self.videoCount() > 1:
+            return "\n\n{{FVC-results-ready-for-review|support=X|oppose=X|neutral=X|featured=no|category=|alternative=|sig=<small>'''Note: Many alternatives, use alternative parameter to select file.'''</small> /~~~~}}"
         else:
             return (
-                "\n\n{{FPC-results-ready-for-review|support=%d|oppose=%d|neutral=%d|featured=%s|category=%s|sig=~~~~}}"
+                "\n\n{{FVC-results-ready-for-review|support=%d|oppose=%d|neutral=%d|featured=%s|category=%s|sig=~~~~}}"
                 % (self._pro, self._con, self._neu, "yes" if self.isPassed() else "no", self.FindCategoryOfFile() )
             )
 
     def getCloseCommitComment(self):
-        if self.imageCount() > 1:
+        if self.videoCount() > 1:
             return "Closing for review - contains alternatives, needs manual count"
         else:
             return (
@@ -1087,8 +1183,8 @@ class FPCandidate(Candidate):
         # as there is not implemented support for it
         fcategory = re.sub(r"#.*", "", results[4])
 
-        # Check if we have an alternative for a multi image
-        if self.imageCount() > 1:
+        # Check if we have an alternative for a multi video
+        if self.videoCount() > 1:
             if len(results) > 5 and len(results[5]):
                 if not pywikibot.Page(G_Site, results[5]).exists():
                     out("%s: (ignoring, specified alternative not found)" % results[5])
@@ -1098,22 +1194,24 @@ class FPCandidate(Candidate):
                 out("%s: (ignoring, alternative not set)" % self.cutTitle())
                 return
 
-        # Featured picture
+        # Featured video
         if not len(fcategory):
             out("%s: (ignoring, category not set)" % self.cutTitle())
             return
         self.addToFeaturedList(re.search(r"(.*?)(?:/|$)", fcategory).group(1))
         self.addToCategorizedFeaturedList(fcategory)
-        self.addAssessments()
+        self.addFPtags()
+        self.makecategoryuploader()
+        self.makecategorynominator()
         self.addToCurrentMonth()
         self.notifyNominator()
         self.notifyUploader()
+        self.createMotdPage()
         self.moveToLog(self._proString)
 
 
 class DelistCandidate(Candidate):
-
-    """A delisting candidate."""
+    """A delisting candidate"""
 
     def __init__(self, page):
         Candidate.__init__(
@@ -1128,11 +1226,11 @@ class DelistCandidate(Candidate):
             DelistCountedTemplateR,
             VerifiedDelistResultR,
         )
-        self._listPageName = "Commons:Featured picture candidates/removal"
+        self._listPageName = "Commons:Featured video candidates/removal"
 
     def getResultString(self):
         return (
-            "\n\n{{FPC-delist-results-ready-for-review|delist=%d|keep=%d|neutral=%d|delisted=%s|sig=~~~~}}"
+            "\n\n{{FVC-delist-results-ready-for-review|delist=%d|keep=%d|neutral=%d|delisted=%s|sig=~~~~"
             % (self._pro, self._con, self._neu, "yes" if self.isPassed() else "no")
         )
 
@@ -1147,82 +1245,93 @@ class DelistCandidate(Candidate):
     def handlePassedCandidate(self, results):
         # Delistings does not care about the category
         self.removeFromFeaturedLists(results)
-        self.removeAssessments()
+        self.removeFV_promoted()
         self.moveToLog(self._proString)
 
     def removeFromFeaturedLists(self, results):
-        """Remove a candidate from all featured lists."""
+        """Remove a candidate from all featured lists"""
 
-        # We skip checking the page with the 4 newest images
+        # We skip checking the page with the 4 newest videos
         # the chance that we are there is very small and even
         # if we are we will soon be rotated away anyway.
         # So just check and remove the candidate from any category pages
 
-        references = self.getImagePage().getReferences(withTemplateInclusion=False)
+        references = self.getVideoPage().getReferences(withTemplateInclusion=False)
         for ref in references:
-            if ref.title().startswith("Commons:Featured pictures/"):
-                if ref.title().startswith("Commons:Featured pictures/chronological"):
+            if ref.title().startswith("Commons:Featured videos/"):
+                if ref.title().startswith("Commons:Featured videos/chronological"):
                     out("Adding delist note to %s" % ref.title())
                     old_text = ref.get(get_redirect=True)
                     now = datetime.datetime.utcnow()
                     new_text = re.sub(
-                        r"(([Ff]ile|[Ii]mage):%s.*)\n"
+                        r"(([Ff]ile|[Vv]ideo):%s.*)\n"
                         % wikipattern(self.cleanTitle(keepExtension=True)),
                         r"\1 '''Delisted %d-%02d-%02d (%s-%s)'''\n"
                         % (now.year, now.month, now.day, results[1], results[0]),
                         old_text,
                     )
                     self.commit(
-                        old_text, new_text, ref, "Delisted [[%s]]" % self.fileName()
+                        old_text, new_text, ref, "Delisted [[%s]]" % self.NewFileNameIfMoved()
                     )
                 else:
                     old_text = ref.get(get_redirect=True)
                     new_text = re.sub(
-                        r"(\[\[)?([Ff]ile|[Ii]mage):%s.*\n"
+                        r"(\[\[)?([Ff]ile|[Vv]video):%s.*\n"
                         % wikipattern(self.cleanTitle(keepExtension=True)),
                         "",
                         old_text,
                     )
                     self.commit(
-                        old_text, new_text, ref, "Removing [[%s]]" % self.fileName()
+                        old_text, new_text, ref, "Removing [[%s]]" % self.NewFileNameIfMoved()
                     )
 
-    def removeAssessments(self):
-        """Remove FP status from an image."""
-        imagePage = self.getImagePage()
-        old_text = imagePage.get(get_redirect=True)
+    def removeFV_promoted(self):
+        """Remove FV status from an video"""
 
-        # First check for the old {{Featured picture}} template
+        videoPage = self.getVideoPage()
+        old_text = videoPage.get(get_redirect=True)
+
+        # First check for the old {{Featured video}} template
         new_text = re.sub(
-            r"{{[Ff]eatured[ _]picture}}", "{{Delisted picture}}", old_text
+            r"{{[Ff]eatured[ _]video}}", "{{Delisted video}}", old_text
         )
 
-        # Then check for the assessments template
+        # Then check for the FV_promoted template
         # The replacement string needs to use the octal value for the char '2' to
-        # not confuse python as '\12\2' would obviously not work
+        # does not confuse python as '\12\2' would obviously not work
         new_text = re.sub(
-            r"({{[Aa]ssessments\s*\|.*(?:com|featured)\s*=\s*)1(.*?}})",
+            r"({{FV_promoted\s*\|.*(?:com|featured)\s*=\s*)1(.*?}})",
             r"\1\062\2",
             new_text,
         )
 
-        self.commit(old_text, new_text, imagePage, "Delisted")
+        self.commit(old_text, new_text, videoPage, "Delisted")
 
 
 def wikipattern(s):
-    """Return a string that can be matched against different way of writing it on wikimedia projects."""
+    """Return a string that can be matched against the different way of writing it on Wikimedia projects"""
 
     def rep(m):
-        if m.group(0) == " " or m.group(0) == "_":
-            return "[ _]"
-        elif m.group(0) == "(" or m.group(0) == ")" or m.group(0) == "*" or m.group(0) == "+" or m.group(0) == "=" or m.group(0) == "?" or m.group(0) == "!" or m.group(0) == "^" or m.group(0) == "-":
-            return "\\" + m.group(0)
+        if m.group(0) in (' ', '_'):
+            return '[ _]'
+        elif m.group(0) in (
+            '(',
+            ')',
+            '*',
+            '+',
+            '=',
+            '?',
+            '!',
+            '^',
+            '-',
+            ):
+            return '\\' + m.group(0)
 
     return re.sub(r"[ _()*+=?!^-]", rep, s)
 
 
 def out(text, newline=True, date=False, color=None):
-    """Just output some text to the consoloe or log."""
+    """Just output some text to the consoloe or log"""
     if color:
         text = "\03{%s}%s\03{default}" % (color, text)
     dstr = (
@@ -1234,7 +1343,7 @@ def out(text, newline=True, date=False, color=None):
 
 
 def findCandidates(page_url, delist):
-    """Finds all candidates on the main FPC page."""
+    """This finds all candidates on the main FVC page"""
 
     page = pywikibot.Page(G_Site, page_url)
 
@@ -1243,14 +1352,18 @@ def findCandidates(page_url, delist):
     for template in templates:
         title = template.title()
         if title.startswith(candPrefix):
+
             # out("Adding '%s' (delist=%s)" % (title,delist))
+
             if delist:
                 candidates.append(DelistCandidate(template))
             else:
-                candidates.append(FPCandidate(template))
+                candidates.append(FVCandidate(template))
         else:
             pass
+
             # out("Skipping '%s'" % title)
+
     return candidates
 
 
@@ -1260,7 +1373,7 @@ def checkCandidates(check, page, delist):
 
     @param check  A function in Candidate to call on each candidate
     @param page   A page containing all candidates
-    @param delist Boolean, telling whether this is delistings of fpcs
+    @param delist Boolean, telling whether this is delistings of fvcs
     """
     candidates = findCandidates(page, delist)
 
@@ -1307,22 +1420,19 @@ def filter_content(text):
     """
     text = strip_tag(text, "s")
     text = strip_tag(text, "nowiki")
-    text = re.sub(
-        r"(?s){{\s*[Ii]mageNote\s*\|.*?}}.*{{\s*[iI]mageNoteEnd.*?}}", "", text
-    )
     text = re.sub(r"(?s)<!--.*?-->", "", text)
     return text
 
 
 def strip_tag(text, tag):
-    """Will simply take a tag and remove a specified tag."""
+    """Will simply take a tag and remove a specified tag"""
     return re.sub(r"(?s)<%s>.*?</%s>" % (tag, tag), "", text)
 
 
 def findEndOfTemplate(text, template):
     """
-    As regexps can't properly deal with nested parantheses this
-    function will manually scan for where a template ends
+    As regexp can't properly deal with nested parentheses this
+    the function will manually scan for where a template ends
     such that we can insert new text after it.
     Will return the position or 0 if not found.
     """
@@ -1378,7 +1488,7 @@ Month = {
 }
 
 
-# List of valid templates
+# List of allowed voting templates, you are encouraged to add templates in different languages
 # They are taken from the page Commons:Polling_templates and some common redirects
 support_templates = (
     "[Ss]upport",
@@ -1487,8 +1597,8 @@ keep_templates = (
 
 # Used to remove the prefix and just print the file names
 # of the candidate titles.
-candPrefix = "Commons:Featured picture candidates/"
-PrefixR = re.compile("%s.*?([Ff]ile|[Ii]mage)?:" % candPrefix)
+candPrefix = "Commons:Featured video candidates/"
+PrefixR = re.compile("%s.*?([Ff]ile|[Vv]ideo)?:" % candPrefix)
 
 # Looks for result counts, an example of such a line is:
 # '''result:''' 3 support, 2 oppose, 0 neutral => not featured.
@@ -1501,36 +1611,36 @@ PreviousResultR = re.compile(
 # Looks for verified results
 VerifiedResultR = re.compile(
     r"""
-                              {{\s*FPC-results-reviewed\s*\|        # Template start
+                              {{\s*FVC-results-reviewed\s*\|        # Template start
                               \s*support\s*=\s*(\d+)\s*\|           # Support votes (1)
                               \s*oppose\s*=\s*(\d+)\s*\|            # Oppose Votes  (2)
                               \s*neutral\s*=\s*(\d+)\s*\|           # Neutral votes (3)
                               \s*featured\s*=\s*(\w+)\s*\|          # Featured, should be yes or no, but is not verified at this point (4)
-                              \s*category\s*=\s*([^|]*)             # A category if the image was featured (5)
-                              (?:\|\s*alternative\s*=\s*([^|]*))?   # For candidate with alternatives this specifies the winning image (6)
+                              \s*category\s*=\s*([^|]*)             # A category if the video was featured (5)
+                              (?:\|\s*alternative\s*=\s*([^|]*))?   # For candidate with alternatives this specifies the winning video (6)
                               .*}}                                  # END
                               """,
     re.MULTILINE | re.VERBOSE,
 )
 
 VerifiedDelistResultR = re.compile(
-    r"{{\s*FPC-delist-results-reviewed\s*\|\s*delist\s*=\s*(\d+)\s*\|\s*keep\s*=\s*(\d+)\s*\|\s*neutral\s*=\s*(\d+)\s*\|\s*delisted\s*=\s*(\w+).*?}}",
+    r"{{\s*FVC-delist-results-reviewed\s*\|\s*delist\s*=\s*(\d+)\s*\|\s*keep\s*=\s*(\d+)\s*\|\s*neutral\s*=\s*(\d+)\s*\|\s*delisted\s*=\s*(\w+).*?}}",
     re.MULTILINE,
 )
 
 # Matches the entire line including newline so they can be stripped away
 CountedTemplateR = re.compile(
-    r"^.*{{\s*FPC-results-ready-for-review.*}}.*$\n?", re.MULTILINE
+    r"^.*{{\s*FVC-results-ready-for-review.*}}.*$\n?", re.MULTILINE
 )
 DelistCountedTemplateR = re.compile(
-    r"^.*{{\s*FPC-delist-results-ready-for-review.*}}.*$\n?", re.MULTILINE
+    r"^.*{{\s*FVC-delist-results-ready-for-review.*}}.*$\n?", re.MULTILINE
 )
-ReviewedTemplateR = re.compile(r"^.*{{\s*FPC-results-reviewed.*}}.*$\n?", re.MULTILINE)
+ReviewedTemplateR = re.compile(r"^.*{{\s*FVC-results-reviewed.*}}.*$\n?", re.MULTILINE)
 DelistReviewedTemplateR = re.compile(
-    r"^.*{{\s*FPC-delist-results-reviewed.*}}.*$\n?", re.MULTILINE
+    r"^.*{{\s*FVC-delist-results-reviewed.*}}.*$\n?", re.MULTILINE
 )
 
-# Is whitespace allowed at the end ?
+# Is whitespace allowed at the end?
 SectionR = re.compile(r"^={1,4}.+={1,4}\s*$", re.MULTILINE)
 # Voting templates
 SupportR = re.compile(
@@ -1550,17 +1660,22 @@ KeepR = re.compile(r"{{\s*(?:%s)(\|.*)?\s*}}" % "|".join(keep_templates), re.MUL
 # This template has an optional string which we
 # must be able to detect after the pipe symbol
 WithdrawnR = re.compile(r"{{\s*(?:[wW]ithdrawn?|[fF]PD)\s*(\|.*)?}}", re.MULTILINE)
-# Nomination that contain the fpx template
-FpxR = re.compile(r"{{\s*FPX(\|.*)?}}", re.MULTILINE)
-# Counts the number of displayed images
-ImagesR = re.compile(r"\[\[((?:[Ff]ile|[Ii]mage):[^|]+).*?\]\]")
-# Look for a size specification of the image link
+
+# Nomination that contain the fvx template
+FvxR = re.compile(r"{{\s*FVX(\|.*)?}}", re.MULTILINE)
+
+# Find if there is a thumb parameter specified to allow comments with small images
+ImageCommmentsThumbR = re.compile(r"\|\s*thumb\b")
+
+# Counts the number of displayed files both video and video
+VideosR = re.compile(r"\[\[((?:[Ff]ile|[Vv]ideo):[^|]+).*?\]\]")
+
+# Look for a size specification of the video link, there is a 200px limit on size
 ImagesSizeR = re.compile(r"\|.*?(\d+)\s*px")
-# Find if there is a thumb parameter specified
-ImagesThumbR = re.compile(r"\|\s*thumb\b")
-# Finds the last image link on a page
-LastImageR = re.compile(
-    r"(?s)(\[\[(?:[Ff]ile|[Ii]mage):[^\n]*\]\])(?!.*\[\[(?:[Ff]ile|[Ii]mage):)"
+
+# Get the last video link on a page
+LastVideoR = re.compile(
+    r"(?s)(\[\[(?:[Ff]ile|[Vv]ideo):[^\n]*\]\])(?!.*\[\[(?:[Ff]ile|[Vv]ideo):)"
 )
 
 # Auto reply yes to all questions
@@ -1569,7 +1684,7 @@ G_Auto = False
 G_Dry = False
 # Use threads
 G_Threads = False
-# Avoid timestamps in output
+# Avoid timestamps in the output
 G_LogNoTime = False
 # Pattern to match
 G_MatchPattern = ""
@@ -1588,13 +1703,13 @@ def main(*args):
     # Will sys.exit(-1) if another instance is running
     me = singleton.SingleInstance()
 
-    fpcPage = "Commons:Featured picture candidates/candidate_list"
-    delistPage = "Commons:Featured_picture_candidates/removal"
-    testLog = "Commons:Featured_picture_candidates/Log/January_2009"
+    FVClist = "Commons:Featured video candidates/candidate_list"
+    delistPage = "Commons:Featured_video_candidates/removal"
+    testLog = "Commons:Featured_video_candidates/Test"
 
     worked = False
     delist = False
-    fpc = False
+    fvc = False
 
     # First look for arguments that should be set for all operations
     i = 1
@@ -1615,8 +1730,8 @@ def main(*args):
             delist = True
             sys.argv.remove(arg)
             continue
-        elif arg == "-fpc":
-            fpc = True
+        elif arg == "-fvc":
+            fvc = True
             sys.argv.remove(arg)
             continue
         elif arg == "-notime":
@@ -1633,9 +1748,9 @@ def main(*args):
                 sys.exit(0)
         i += 1
 
-    if not delist and not fpc:
+    if not delist and not fvc:
         delist = True
-        fpc = True
+        fvc = True
 
     # Can not use interactive mode with threads
     if G_Threads and (not G_Dry and not G_Auto):
@@ -1653,7 +1768,7 @@ def main(*args):
             "-info",
             "-park",
             "-threads",
-            "-fpc",
+            "-fvc",
             "-delist",
             "-help",
             "-notime",
@@ -1671,22 +1786,22 @@ def main(*args):
         if arg == "-test":
             if delist:
                 out("-test not supported for delisting candidates")
-            if fpc:
+            if fvc:
                 checkCandidates(Candidate.compareResultToCount, testLog, delist=False)
         elif arg == "-close":
             if delist:
                 out("Closing delist candidates...", color="lightblue")
                 checkCandidates(Candidate.closePage, delistPage, delist=True)
-            if fpc:
-                out("Closing fpc candidates...", color="lightblue")
-                checkCandidates(Candidate.closePage, fpcPage, delist=False)
+            if fvc:
+                out("Closing fvc candidates...", color="lightblue")
+                checkCandidates(Candidate.closePage, FVClist, delist=False)
         elif arg == "-info":
             if delist:
                 out("Gathering info about delist candidates...", color="lightblue")
                 checkCandidates(Candidate.printAllInfo, delistPage, delist=True)
-            if fpc:
-                out("Gathering info about fpc candidates...", color="lightblue")
-                checkCandidates(Candidate.printAllInfo, fpcPage, delist=False)
+            if fvc:
+                out("Gathering info about fvc candidates...", color="lightblue")
+                checkCandidates(Candidate.printAllInfo, FVClist, delist=False)
         elif arg == "-park":
             if G_Threads and G_Auto:
                 out(
@@ -1697,9 +1812,9 @@ def main(*args):
             if delist:
                 out("Parking delist candidates...", color="lightblue")
                 checkCandidates(Candidate.park, delistPage, delist=True)
-            if fpc:
-                out("Parking fpc candidates...", color="lightblue")
-                checkCandidates(Candidate.park, fpcPage, delist=False)
+            if fvc:
+                out("Parking fvc candidates...", color="lightblue")
+                checkCandidates(Candidate.park, FVClist, delist=False)
 
     if not worked:
         out("Warning - you need to specify an argument, see -help.", color="lightred")

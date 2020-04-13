@@ -13,10 +13,6 @@ import threading
 import time
 from pywikibot import config
 
-# Import for single process check
-# dependency can be installed using "pip install tendo" or "easy_install tendo"
-from tendo import singleton
-
 
 class NotImplementedException(Exception):
     """Not implemented"""
@@ -1106,18 +1102,10 @@ class Candidate:
         out("\n About to commit changes to: '%s'" % page.title())
 
         # Show the diff
-        for line in difflib.context_diff(
-            old_text.splitlines(1), new_text.splitlines(1)
-        ):
-            if line.startswith("+ "):
-                out(line, newline=False, color="lightgreen")
-            elif line.startswith("- "):
-                out(line, newline=False, color="lightred")
-            elif line.startswith("! "):
-                out(line, newline=False, color="lightyellow")
-            else:
-                out(line, newline=False)
-        out("\n")
+        pywikibot.showDiff(
+            old_text,
+            new_text,
+            )
 
         if G_Dry:
             choice = "n"

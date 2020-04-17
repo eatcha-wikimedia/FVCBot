@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import pywikibot
 import re
-
-from datetime import datetime, timedelta
 import sys
 import signal
+import pywikibot
+from datetime import datetime, timedelta
 
 # Imports needed for threading
 import threading
@@ -29,7 +28,7 @@ class ThreadCheckCandidate(threading.Thread):
 
 class Candidate:
     """
-    This is a video candidate
+    This is a fv video candidate
 
     This class just serves as a base for the DelistCandidate and FVCandidate classes
     """
@@ -740,7 +739,7 @@ class Candidate:
         """
         why = "adding to fv log"
         today = datetime.date.today()
-        current_month = Month[today.month]
+        current_month = datetime.utcnow().strftime("%B")
         monthpage = "Commons:Featured videos/chronological/%s %s" % (
             current_month,
             today.year,
@@ -962,7 +961,7 @@ class Candidate:
         # Add to log
         # (Note FIXME, we must probably create this page if it does not exist)
         today = datetime.date.today()
-        current_month = Month[today.month]
+        current_month = datetime.utcnow().strftime("%B")
         log_link = "Commons:Featured video candidates/Log/%s %s" % (
             current_month,
             today.year,
@@ -1311,7 +1310,6 @@ def wikipattern(s):
 
     return re.sub(r"[ _()*+=?!^-]", rep, s)
 
-
 def out(text, newline=True, date=False, color=None):
     """Just output some text to the consoloe or log"""
     if color:
@@ -1322,7 +1320,6 @@ def out(text, newline=True, date=False, color=None):
         else ""
     )
     pywikibot.stdout("%s%s" % (dstr, text), newline=newline)
-
 
 def findCandidates(page_url, delist):
     """This finds all candidates on the main FVC page"""
@@ -1451,23 +1448,6 @@ def findEndOfTemplate(text, template):
             cp = ns + 2
     # Apparently we never found it
     return 0
-
-
-# Data and regexps used by the bot
-Month = {
-    1: "January",
-    2: "February",
-    3: "March",
-    4: "April",
-    5: "May",
-    6: "June",
-    7: "July",
-    8: "August",
-    9: "September",
-    10: "October",
-    11: "November",
-    12: "December",
-}
 
 
 # List of allowed voting templates, you are encouraged to add templates in different languages

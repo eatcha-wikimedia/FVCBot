@@ -2,10 +2,9 @@
 
 import pywikibot
 import re
-import datetime
-from datetime import timedelta
+
+from datetime import datetime, timedelta
 import sys
-import difflib
 import signal
 
 # Imports needed for threading
@@ -306,12 +305,12 @@ class Candidate:
                 "Could not retrieve history for '%s', returning now()"
                 % self.page.title()
             )
-            return datetime.datetime.now()
+            return datetime.utcnow()
 
         self._creationTime = history[0][1]
 
         # print "C:" + self._creationTime.isoformat()
-        # print "N:" + datetime.datetime.utcnow().isoformat()
+        # print "N:" + datetime.utcnow().isoformat()
         return self._creationTime
 
     def statusString(self):
@@ -331,7 +330,7 @@ class Candidate:
         if self._daysOld != -1:
             return self._daysOld
 
-        delta = datetime.datetime.utcnow() - self.creationTime()
+        delta = datetime.utcnow() - self.creationTime()
         self._daysOld = delta.days
         return self._daysOld
 
@@ -345,13 +344,13 @@ class Candidate:
             return self._daysSinceLastEdit
 
         try:
-            lastEdit = datetime.datetime.strptime(
+            lastEdit = datetime.strptime(
                 str(self.page.editTime()), "%Y-%m-%dT%H:%M:%SZ"
             )
         except:
             return -1
 
-        delta = datetime.datetime.utcnow() - lastEdit
+        delta = datetime.utcnow() - lastEdit
         self._daysSinceLastEdit = delta.days
         return self._daysSinceLastEdit
 
@@ -892,16 +891,11 @@ class Candidate:
         result = re.search('{{Candidatedescription}}(.*)', cand_page_text)
         return result.group(1)
 
-
     def informatdate(self):
-        vare = (datetime.datetime.now()+timedelta(41)).strftime('%Y-%m-%d')
-        return vare
-
+        return (datetime.utcnow()+timedelta(41)).strftime('%Y-%m-%d')
 
     def formatMotdTemplateTag(self):
-        gar = (datetime.datetime.now()+timedelta(41)).strftime('%Y|%m|%d')
-        return gar
-
+        return (datetime.utcnow()+timedelta(41)).strftime('%Y|%m|%d')
 
     def get_motd_page_link(self):
         return 'Template:Motd/%s' % self.informatdate()
@@ -1250,7 +1244,7 @@ class DelistCandidate(Candidate):
                 if ref.title().startswith("Commons:Featured videos/chronological"):
                     out("Adding delist note to %s" % ref.title())
                     old_text = ref.get(get_redirect=True)
-                    now = datetime.datetime.utcnow()
+                    now = datetime.utcnow()
                     new_text = re.sub(
                         r"(([Ff]ile|[Vv]ideo):%s.*)\n"
                         % wikipattern(self.cleanTitle(keepExtension=True)),
@@ -1323,7 +1317,7 @@ def out(text, newline=True, date=False, color=None):
     if color:
         text = "\03{%s}%s\03{default}" % (color, text)
     dstr = (
-        "%s: " % datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+        "%s: " % datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
         if date and not G_LogNoTime
         else ""
     )
@@ -1687,9 +1681,6 @@ def main(*args):
     global G_LogNoTime
     global G_MatchPattern
     global G_Site
-
-    # Will sys.exit(-1) if another instance is running
-    me = singleton.SingleInstance()
 
     FVClist = "Commons:Featured video candidates/candidate_list"
     delistPage = "Commons:Featured_video_candidates/removal"

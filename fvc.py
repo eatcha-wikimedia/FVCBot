@@ -1484,6 +1484,7 @@ support_templates = (
     "[Ss]",
     "[Aa]poio",
 )
+
 oppose_templates = (
     "[Oo]",
     "[Oo]ppose",
@@ -1517,6 +1518,7 @@ oppose_templates = (
     "[Ss]trong oppose",
     "[Ww]eak oppose",
 )
+
 neutral_templates = (
     "[Nn]eutral?",
     "[Oo]partisk",
@@ -1536,10 +1538,12 @@ neutral_templates = (
     "[Vv]n",
     "[Nn]eutrale",
 )
+
 delist_templates = (
     "[Dd]elist",
     "sdf",
 )  # Should the remove templates be valid here ? There seem to be no internationalized delist versions
+
 keep_templates = (
     "[Kk]eep",
     "[Vv]k",
@@ -1565,6 +1569,7 @@ PrefixR = re.compile("%s.*?([Ff]ile|[Vv]ideo)?:" % candPrefix)
 # Looks for result counts, an example of such a line is:
 # '''result:''' 3 support, 2 oppose, 0 neutral => not featured.
 #
+
 PreviousResultR = re.compile(
     r"'''result:'''\s+(\d+)\s+support,\s+(\d+)\s+oppose,\s+(\d+)\s+neutral\s*=>\s*((?:not )?featured)",
     re.MULTILINE,
@@ -1594,29 +1599,39 @@ VerifiedDelistResultR = re.compile(
 CountedTemplateR = re.compile(
     r"^.*{{\s*FVC-results-ready-for-review.*}}.*$\n?", re.MULTILINE
 )
+
 DelistCountedTemplateR = re.compile(
     r"^.*{{\s*FVC-delist-results-ready-for-review.*}}.*$\n?", re.MULTILINE
 )
-ReviewedTemplateR = re.compile(r"^.*{{\s*FVC-results-reviewed.*}}.*$\n?", re.MULTILINE)
+
+ReviewedTemplateR = re.compile(
+    r"^.*{{\s*FVC-results-reviewed.*}}.*$\n?", re.MULTILINE
+)
+
 DelistReviewedTemplateR = re.compile(
     r"^.*{{\s*FVC-delist-results-reviewed.*}}.*$\n?", re.MULTILINE
 )
 
 # Is whitespace allowed at the end?
 SectionR = re.compile(r"^={1,4}.+={1,4}\s*$", re.MULTILINE)
+
 # Voting templates
 SupportR = re.compile(
     r"{{\s*(?:%s)(\|.*)?\s*}}" % "|".join(support_templates), re.MULTILINE
 )
+
 OpposeR = re.compile(
     r"{{\s*(?:%s)(\|.*)?\s*}}" % "|".join(oppose_templates), re.MULTILINE
 )
+
 NeutralR = re.compile(
     r"{{\s*(?:%s)(\|.*)?\s*}}" % "|".join(neutral_templates), re.MULTILINE
 )
+
 DelistR = re.compile(
     r"{{\s*(?:%s)(\|.*)?\s*}}" % "|".join(delist_templates), re.MULTILINE
 )
+
 KeepR = re.compile(r"{{\s*(?:%s)(\|.*)?\s*}}" % "|".join(keep_templates), re.MULTILINE)
 # Finds if a withdraw template is used
 # This template has an optional string which we

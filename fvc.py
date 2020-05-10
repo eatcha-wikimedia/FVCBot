@@ -1161,10 +1161,10 @@ class FVCandidate(Candidate):
 
     def getResultString(self):
         if self.videoCount() > 1:
-            return "\n\n{{FVC-results-ready-for-review|support=X|oppose=X|neutral=X|featured=no|category=|alternative=|sig=<small>'''Note: Many alternatives, use alternative parameter to select file.'''</small> /~~~~}}"
+            return "\n\n{{FVC-results-unreviewed|support=X|oppose=X|neutral=X|featured=no|category=|alternative=|sig=<small>'''Note: Many alternatives, use alternative parameter to select file.'''</small> /~~~~}}"
         else:
             return (
-                "\n\n{{FVC-results-ready-for-review|support=%d|oppose=%d|neutral=%d|featured=%s|category=%s|sig=~~~~}}"
+                "\n\n{{FVC-results-unreviewed|support=%d|oppose=%d|neutral=%d|featured=%s|category=%s|sig=~~~~}}"
                 % (self._pro, self._con, self._neu, "yes" if self.isPassed() else "no", self.FindCategoryOfFile() )
             )
 
@@ -1630,7 +1630,7 @@ VerifiedDelistResultR = re.compile(
 
 # Matches the entire line including newline so they can be stripped away
 CountedTemplateR = re.compile(
-    r"^.*{{\s*FVC-results-ready-for-review.*}}.*$\n?", re.MULTILINE
+    r"^.*{{\s*FVC-results-unreviewed.*}}.*$\n?", re.MULTILINE
 )
 DelistCountedTemplateR = re.compile(
     r"^.*{{\s*FVC-delist-results-ready-for-review.*}}.*$\n?", re.MULTILINE
